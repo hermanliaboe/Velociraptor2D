@@ -6,12 +6,12 @@ using Rhino.Geometry;
 
 namespace FEM.Components
 {
-    public class Beam : GH_Component
+    public class CreateBeamElements : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the Beam class.
         /// </summary>
-        public Beam()
+        public CreateBeamElements()
           : base("Beam", "Nickname",
               "Description",
               "Category", "Subcategory")
