@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace FEM.Components
 {
-    public class FEMComponent : GH_Component
+    public class FEMSolver : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -15,7 +15,7 @@ namespace FEM.Components
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public FEMComponent()
+        public FEMSolver()
           : base("FEM", "femmern",
             "FEM solver",
             "Fun", "FEM")
