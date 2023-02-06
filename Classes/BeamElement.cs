@@ -11,6 +11,8 @@ namespace FEM.Classes
         public string type;
         public int id;
         public List<Node> nodes;
+        public Node startNode;
+        public Node endNode;
 
         public BeamElement() { }
     }

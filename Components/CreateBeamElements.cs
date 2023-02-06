@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using FEM.Classes;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
@@ -23,8 +23,7 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            //yoyoyo
-            //new comment
+            pManager.AddLineParameter("Lines", "ls", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -32,6 +31,7 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
+            pManager.AddGenericParameter("Elements","els","", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -40,6 +40,47 @@ namespace FEM.Components
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            List <Line> lines = new List<Line>();
+            DA.GetData(0, ref lines);
+
+            List<Node> nodes = new List<Node> ();
+            List<BeamElement> beams = new List<BeamElement>();
+            
+            int idc = 0;
+            foreach (Line line in lines)
+            {
+                Point3d stPt = line.From;
+                Point3d ePt = line.To;
+                BeamElement element = new BeamElement();
+
+                foreach (Node node in nodes)
+                {
+                    if (stPt.CompareTo(node.point) == 0)
+                    {
+                        element.startNode = node;
+                    }
+                    else 
+                    {
+                        Node stNode = new Node(0, idc, stPt);
+                        element.startNode = stNode;
+                        idc++;
+                    }
+                    if (ePt.CompareTo(node.point) == 0)
+                    {
+                        element.endNode = node;
+                    }
+                    else
+                    {
+                        Node eNode = new Node(0, idc, ePt);
+                        element.endNode = eNode;
+                        idc++;
+                    }
+                }
+                beams.Add(element);
+            }
+
+            DA.SetData(0, beams);
+
         }
 
         /// <summary>

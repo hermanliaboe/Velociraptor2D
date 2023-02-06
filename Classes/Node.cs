@@ -11,8 +11,8 @@ namespace FEM.Classes
     internal class Node
     {
         public int localID;
-        public Point3d point;
         public int globalID;
+        public Point3d point;
         public bool xBC;
         public bool zBC;
         public bool ry;
@@ -26,6 +26,12 @@ namespace FEM.Classes
             this.xBC = xBC;
             this.zBC = zBC;
             this.ry = ry;
+        }
+        public Node(int localID, int globalID, Point3d point)
+        {
+            this.localID = localID;
+            this.point = point;
+            this.globalID = globalID;
         }
 
         public Node() { }
