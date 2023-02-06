@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace FEM
+namespace FEM.Components
 {
-    public class Beam : GH_Component
+    public class DeconstructModel : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the Beam class.
+        /// Initializes a new instance of the DeconstructModel class.
         /// </summary>
-        public Beam()
-          : base("Beam", "Nickname",
+        public DeconstructModel()
+          : base("DeconstructModel", "Nickname",
               "Description",
               "Category", "Subcategory")
         {
@@ -23,8 +23,6 @@ namespace FEM
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            //yoyoyo
-            //new comment
         }
 
         /// <summary>
@@ -60,7 +58,7 @@ namespace FEM
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("36B2609B-0264-4FD9-AFE9-631B3E6CACB5"); }
+            get { return new Guid("E2601F6D-63E3-416C-8D10-826720D3B508"); }
         }
     }
 }

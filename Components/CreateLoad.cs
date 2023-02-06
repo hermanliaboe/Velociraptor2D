@@ -4,15 +4,15 @@ using System.Collections.Generic;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace FEM
+namespace FEM.Components
 {
-    public class Node : GH_Component
+    public class Load : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the Node class.
+        /// Initializes a new instance of the Load class.
         /// </summary>
-        public Node()
-          : base("Node", "Nickname",
+        public Load()
+          : base("Load", "Nickname",
               "Description",
               "Category", "Subcategory")
         {
@@ -21,14 +21,14 @@ namespace FEM
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
         }
 
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
         }
 
@@ -58,7 +58,7 @@ namespace FEM
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("493F2973-8A96-4F09-9D04-7353F649EB5C"); }
+            get { return new Guid("C9C77D55-6065-47CB-B39B-FFF857840766"); }
         }
     }
 }
