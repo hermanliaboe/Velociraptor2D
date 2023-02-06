@@ -21,7 +21,8 @@ namespace FEM.Classes
             this.tx = tx;
             this.tz = tz;
             this.ry = ry;
-            this.point = point;
+            
+
         }
     }
 }
