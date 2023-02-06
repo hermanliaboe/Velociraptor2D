@@ -6,12 +6,7 @@ using System.Threading.Tasks;
 
 namespace FEM.Classes
 {
-    internal class BeamElement
+    internal class Support
     {
-        public string type;
-        public int id;
-        public List<Node> nodes;
-
-        public BeamElement() { }
     }
 }
