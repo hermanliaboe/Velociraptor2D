@@ -23,6 +23,7 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            //trying some stuff here
         }
 
         /// <summary>
