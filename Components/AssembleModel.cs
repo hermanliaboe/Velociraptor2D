@@ -80,13 +80,11 @@ namespace FEM.Components
                 }                    
              }
 
+            Assembly assembly = new Assembly(beams, supports, loads);
+            DA.SetData(0, assembly);
 
 
-
-
-
-
-         }
+        }
 
     
 
