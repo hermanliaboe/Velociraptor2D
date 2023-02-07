@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Rhino.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,7 +14,14 @@ namespace FEM.Classes
         public List<Node> nodes;
         public Node startNode;
         public Node endNode;
+        public Line line;
 
         public BeamElement() { }
+
+        public BeamElement(int id, Line line)
+        {
+            this.id = id;
+            this.line = line;
+        }
     }
 }

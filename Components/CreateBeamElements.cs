@@ -14,7 +14,7 @@ namespace FEM.Components
         public CreateBeamElements()
           : base("Beam", "Nickname",
               "Description",
-              "Category", "Subcategory")
+              "Masters", "FEM")
         {
         }
 
@@ -41,45 +41,45 @@ namespace FEM.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             List <Line> lines = new List<Line>();
-            DA.GetData(0, ref lines);
+            DA.GetDataList(0, lines);
 
-            List<Node> nodes = new List<Node> ();
             List<BeamElement> beams = new List<BeamElement>();
+            Dictionary<Point3d, Node> existingNodes = new Dictionary<Point3d, Node>();
             
-            int idc = 0;
+            int idc = 0; // element global ID count
+            int bidc = 0; // beam ID count
             foreach (Line line in lines)
             {
                 Point3d stPt = line.From;
                 Point3d ePt = line.To;
-                BeamElement element = new BeamElement();
-
-                foreach (Node node in nodes)
+                BeamElement element = new BeamElement(bidc, line);
+                bidc++;
+                if (existingNodes.ContainsKey(stPt))
                 {
-                    if (stPt.CompareTo(node.point) == 0)
-                    {
-                        element.startNode = node;
-                    }
-                    else 
-                    {
-                        Node stNode = new Node(0, idc, stPt);
-                        element.startNode = stNode;
-                        idc++;
-                    }
-                    if (ePt.CompareTo(node.point) == 0)
-                    {
-                        element.endNode = node;
-                    }
-                    else
-                    {
-                        Node eNode = new Node(0, idc, ePt);
-                        element.endNode = eNode;
-                        idc++;
-                    }
+                    element.startNode = existingNodes[stPt];
+                }
+                else
+                {
+                    Node sNode = new Node(0, idc, stPt);
+                    existingNodes.Add(stPt, sNode);
+                    element.startNode = sNode;
+                    idc++;
+                }
+                if (existingNodes.ContainsKey(ePt))
+                {
+                    element.endNode = existingNodes[ePt];
+                }
+                else
+                {
+                    Node eNode = new Node(0, idc, ePt);
+                    existingNodes.Add(ePt, eNode);
+                    element.endNode = eNode;
+                    idc++;
                 }
                 beams.Add(element);
             }
 
-            DA.SetData(0, beams);
+            DA.SetDataList(0, beams);
 
         }
 

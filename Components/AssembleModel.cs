@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Xml.Linq;
 using FEM.Classes;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
@@ -15,7 +17,7 @@ namespace FEM.Components
         public AssembleModel()
           : base("AssembleModel", "Nickname",
               "Description",
-              "Masters", "Subcategory")
+              "Masters", "FEM solver")
         {
         }
 
@@ -48,14 +50,46 @@ namespace FEM.Components
             List<Support> supports = new List<Support>();
             List<Load> loads = new List<Load>();
 
-            DA.GetData(0, ref beams);
-            DA.GetData(1, ref supports);
-            DA.GetData(2, ref loads);
+            DA.GetDataList(0,  beams);
+            DA.GetDataList(1,  supports);
+            DA.GetDataList(2,  loads);
+
+            //Check for where the support is located, and if found the correct beam gets new BC
+
+            foreach (Support sup in supports)
+            {
+                foreach (BeamElement b in beams) 
+                {
+                    Node startNode = b.startNode;
+                    if (startNode.point == sup.point)
+                    {
+                        startNode.zBC = sup.tz;
+                        startNode.xBC = sup.tx;
+                        startNode.ry = sup.ry;
+
+                    }
+
+                    Node endNode = b.endNode;
+                    if (endNode.point == sup.point)
+                    {
+                        endNode.zBC = sup.tz;
+                        endNode.xBC = sup.tx;
+                        endNode.ry = sup.ry;
+
+                    }
+                }                    
+             }
 
             Assembly assembly = new Assembly(beams, supports, loads);
-
             DA.SetData(0, assembly);
+
+
         }
+
+    
+
+            
+        
 
         /// <summary>
         /// Provides an Icon for the component.
