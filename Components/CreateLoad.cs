@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using FEM.Classes;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
 namespace FEM.Components
 {
-    public class Load : GH_Component
+    public class CreateLoad : GH_Component
     {
         /// <summary>
         /// Initializes a new instance of the Load class.
         /// </summary>
-        public Load()
-          : base("Load", "Nickname",
+        public CreateLoad()
+          : base("CreateLoad", "Nickname",
               "Description",
-              "Category", "Subcategory")
+              "Masters", "Subcategory")
         {
         }
 
@@ -23,6 +23,8 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
+            pManager.AddPointParameter("Point","pt","Attact point for force vector", GH_ParamAccess.item);
+            pManager.AddVectorParameter("Vector", "vec", "Vector to decribe sice and angle of force", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -30,6 +32,7 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
+            pManager.AddGenericParameter("Loads", "Loads", "List of loads", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -38,6 +41,20 @@ namespace FEM.Components
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            Point3d LoadPt = new Point3d();
+            Vector3d LoadVec = new Vector3d();
+
+            DA.GetData(0, ref LoadPt);
+            DA.GetData(1, ref LoadVec);
+
+
+            List<Load> LoadList = new List<Load>();
+            Load load = new Load(LoadPt, LoadVec);
+            LoadList.Add(load);
+
+            DA.SetDataList(0, LoadList);
+
+
         }
 
         /// <summary>
