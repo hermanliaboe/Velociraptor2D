@@ -73,11 +73,10 @@ namespace FEM.Components
                 {
                     Node eNode = new Node(0, idc, ePt);
                     existingNodes.Add(ePt, eNode);
-                    element.startNode = eNode;
+                    element.endNode = eNode;
                     idc++;
                 }
                 beams.Add(element);
-                bidc++;
             }
 
             DA.SetDataList(0, beams);
