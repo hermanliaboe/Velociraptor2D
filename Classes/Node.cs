@@ -30,8 +30,8 @@ namespace FEM.Classes
         public Node(int localID, int globalID, Point3d point)
         {
             this.localID = localID;
-            this.point = point;
             this.globalID = globalID;
+            this.point = point;
         }
 
         public Node() { }
