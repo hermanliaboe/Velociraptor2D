@@ -44,21 +44,21 @@ namespace FEM.Components
         protected override void SolveInstance(IGH_DataAccess DA)
 
         {
-            Point3d SupPt = new Point3d();
+            Point3d supPt = new Point3d();
             var tz = false;
             var tx = false;
             var ry = false;
 
-            DA.GetData(0, ref SupPt);
+            DA.GetData(0, ref supPt);
             DA.GetData(1, ref tz);
             DA.GetData(2, ref tx);
             DA.GetData(3, ref ry);
 
-            List<Support> SupportList = new List<Support>();
-            Support support = new Support(SupPt, tz, tx, ry);
-            SupportList.Add(support);
+            List<Support> supportList = new List<Support>();
+            Support support = new Support(supPt, tz, tx, ry);
+            supportList.Add(support);
 
-            DA.SetDataList(0,SupportList);
+            DA.SetDataList(0,supportList);
         }
 
         /// <summary>

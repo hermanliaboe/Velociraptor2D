@@ -41,18 +41,18 @@ namespace FEM.Components
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            Point3d LoadPt = new Point3d();
-            Vector3d LoadVec = new Vector3d();
+            Point3d loadPt = new Point3d();
+            Vector3d loadVec = new Vector3d();
 
-            DA.GetData(0, ref LoadPt);
-            DA.GetData(1, ref LoadVec);
+            DA.GetData(0, ref loadPt);
+            DA.GetData(1, ref loadVec);
 
 
-            List<Load> LoadList = new List<Load>();
-            Load load = new Load(LoadPt, LoadVec);
-            LoadList.Add(load);
+            List<Load> loadList = new List<Load>();
+            Load load = new Load(loadPt, loadVec);
+            loadList.Add(load);
 
-            DA.SetDataList(0, LoadList);
+            DA.SetDataList(0, loadList);
 
 
         }
