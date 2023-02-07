@@ -9,7 +9,7 @@ namespace FEM.Components
     public class DeconstructAssembly : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the DeconstructBeamElement class.
+        /// Initializes a new instance of the DeconstructAssembly class.
         /// </summary>
         public DeconstructAssembly()
           : base("DeconstructAssembly", "Nickname",
@@ -23,7 +23,7 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("AssembledModell","Ass.mod","",GH_ParamAccess.item);
+            pManager.AddGenericParameter("AssembledModell", "Ass.mod", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -31,10 +31,10 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("beams","sNode","", GH_ParamAccess.list);
+            pManager.AddGenericParameter("beams", "sNode", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("supports", "sup", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("Loads", "loads", "", GH_ParamAccess.list);
-            
+
         }
 
         /// <summary>
@@ -43,14 +43,15 @@ namespace FEM.Components
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            Assembly assembly = new Assembly(); 
+            Assembly assembly = new Assembly();
+            
 
             DA.GetData(0, ref assembly);
 
             DA.SetDataList(0, assembly.beamList);
             DA.SetDataList(1, assembly.supportList);
             DA.SetDataList(2, assembly.loadList);
-          
+
         }
 
         /// <summary>
@@ -71,7 +72,7 @@ namespace FEM.Components
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("369D319E-10A2-41F0-BA4A-88A2F4D67130"); }
+            get { return new Guid("76643FD3-90C4-403B-9F60-BC9EB36A8D3B"); }
         }
     }
 }
