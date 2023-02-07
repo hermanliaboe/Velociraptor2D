@@ -13,8 +13,8 @@ namespace FEM.Components
         /// </summary>
         public CreateLoad()
           : base("CreateLoad", "Nickname",
-              "Description",
-              "Masters", "Subcategory")
+              "Creates a load at given point with given load vector.",
+              "Masters", "Model")
         {
         }
 

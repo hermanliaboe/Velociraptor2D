@@ -12,9 +12,9 @@ namespace FEM.Components
         /// Initializes a new instance of the Beam class.
         /// </summary>
         public CreateBeamElements()
-          : base("Beam", "Nickname",
-              "Description",
-              "Masters", "FEM")
+          : base("CreateBeamElements", "Nickname",
+              "Line to element with two nodes",
+              "Masters", "Model")
         {
         }
 

@@ -1,35 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using FEM.Classes;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace FEM.Components
+namespace FEM.Components.Deconstructors
 {
-    public class DeconstructModel : GH_Component
+    public class DeconstructAssembly : GH_Component
     {
         /// <summary>
-        /// Initializes a new instance of the DeconstructModel class.
+        /// Initializes a new instance of the DeconstructAssembly class.
         /// </summary>
-        public DeconstructModel()
-          : base("DeconstructModel", "Nickname",
-              "Description",
-              "Category", "Subcategory")
+        public DeconstructAssembly()
+          : base("DeconstructAssembly", "Nickname",
+              "Deconstructs Assembly object",
+              "Masters", "Deconstructors")
         {
         }
 
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
+            pManager.AddGenericParameter("AssembledModell", "Ass.mod", "", GH_ParamAccess.item);
         }
 
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
+            pManager.AddGenericParameter("beams", "sNode", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("supports", "sup", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Loads", "loads", "", GH_ParamAccess.list);
+
         }
 
         /// <summary>
@@ -38,6 +43,15 @@ namespace FEM.Components
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            Assembly assembly = new Assembly();
+
+
+            DA.GetData(0, ref assembly);
+
+            DA.SetDataList(0, assembly.beamList);
+            DA.SetDataList(1, assembly.supportList);
+            DA.SetDataList(2, assembly.loadList);
+
         }
 
         /// <summary>
@@ -58,7 +72,7 @@ namespace FEM.Components
         /// </summary>
         public override Guid ComponentGuid
         {
-            get { return new Guid("E2601F6D-63E3-416C-8D10-826720D3B508"); }
+            get { return new Guid("76643FD3-90C4-403B-9F60-BC9EB36A8D3B"); }
         }
     }
 }

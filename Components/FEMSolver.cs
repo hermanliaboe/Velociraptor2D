@@ -16,9 +16,9 @@ namespace FEM.Components
         /// new tabs/panels will automatically be created.
         /// </summary>
         public FEMSolver()
-          : base("FEM", "femmern",
-            "FEM solver",
-            "Fun", "FEM")
+          : base("Dynamic FEMSolver", "femmern",
+            "FEM solver with Newmark method",
+            "Masters", "FEM")
         {
         }
 

@@ -4,7 +4,7 @@ using FEM.Classes;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace FEM.Components
+namespace FEM.Components.Deconstructors
 {
     public class DeconstructBeamElement : GH_Component
     {
@@ -13,28 +13,28 @@ namespace FEM.Components
         /// </summary>
         public DeconstructBeamElement()
           : base("DeconstructBeamElement", "Nickname",
-              "Description",
-              "FEM", "Subcategory")
+              "Deconstructs BeamElement object",
+              "Masters", "Deconstructors")
         {
         }
 
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("BeamElement","be","",GH_ParamAccess.item);
+            pManager.AddGenericParameter("BeamElement", "be", "", GH_ParamAccess.item);
         }
 
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("startNode","sNode","", GH_ParamAccess.item);
+            pManager.AddGenericParameter("startNode", "sNode", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("endNode", "eNode", "", GH_ParamAccess.item);
             pManager.AddLineParameter("line", "l", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("BeamID","bID","",GH_ParamAccess.item);
+            pManager.AddNumberParameter("BeamID", "bID", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace FEM.Components
         /// <param name="DA">The DA object is used to retrieve from inputs and store in outputs.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            BeamElement beam = new BeamElement(); 
+            BeamElement beam = new BeamElement();
             DA.GetData(0, ref beam);
 
             DA.SetData(0, beam.startNode);

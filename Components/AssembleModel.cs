@@ -16,8 +16,8 @@ namespace FEM.Components
         /// </summary>
         public AssembleModel()
           : base("AssembleModel", "Nickname",
-              "Description",
-              "Masters", "FEM solver")
+              "Assembles elements, loads and supports into an Assembly object.",
+              "Masters", "Model")
         {
         }
 

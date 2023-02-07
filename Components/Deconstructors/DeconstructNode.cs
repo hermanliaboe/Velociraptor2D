@@ -4,7 +4,7 @@ using FEM.Classes;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
-namespace FEM.Components
+namespace FEM.Components.Deconstructors
 {
     public class DeconstructNode : GH_Component
     {
@@ -13,28 +13,28 @@ namespace FEM.Components
         /// </summary>
         public DeconstructNode()
           : base("DeconstructNode", "Nickname",
-              "Description",
-              "Category", "Subcategory")
+              "Deconstructs Node object.",
+              "Masters", "Deconstructors")
         {
         }
 
         /// <summary>
         /// Registers all the input parameters for this component.
         /// </summary>
-        protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
+        protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Node","","", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Node", "", "", GH_ParamAccess.item);
         }
 
         /// <summary>
         /// Registers all the output parameters for this component.
         /// </summary>
-        protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
+        protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddPointParameter("Point","","", GH_ParamAccess.item);
-            pManager.AddNumberParameter("localID","","", GH_ParamAccess.item);
+            pManager.AddPointParameter("Point", "", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("localID", "", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("globalID", "", "", GH_ParamAccess.item);
-            pManager.AddBooleanParameter("Tx","","",GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Tx", "", "", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Tz", "", "", GH_ParamAccess.item);
             pManager.AddBooleanParameter("ry", "", "", GH_ParamAccess.item);
         }
