@@ -17,7 +17,7 @@ namespace FEM.Components
         public AssembleModel()
           : base("AssembleModel", "Nickname",
               "Description",
-              "Masters", "Subcategory")
+              "Masters", "FEM solver")
         {
         }
 
