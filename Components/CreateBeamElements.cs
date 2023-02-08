@@ -32,6 +32,7 @@ namespace FEM.Components
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
             pManager.AddGenericParameter("Elements","els","", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Nodes","ns","", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -45,6 +46,7 @@ namespace FEM.Components
 
             List<BeamElement> beams = new List<BeamElement>();
             Dictionary<Point3d, Node> existingNodes = new Dictionary<Point3d, Node>();
+            List<Node> nodes = new List<Node>();
             
             int idc = 0; // element global ID count
             int bidc = 0; // beam ID count
@@ -63,6 +65,7 @@ namespace FEM.Components
                     Node sNode = new Node(0, idc, stPt);
                     existingNodes.Add(stPt, sNode);
                     element.startNode = sNode;
+                    nodes.Add(sNode);
                     idc++;
                 }
                 if (existingNodes.ContainsKey(ePt))
@@ -74,12 +77,15 @@ namespace FEM.Components
                     Node eNode = new Node(0, idc, ePt);
                     existingNodes.Add(ePt, eNode);
                     element.endNode = eNode;
+                    nodes.Add(eNode);
                     idc++;
                 }
                 beams.Add(element);
             }
 
             DA.SetDataList(0, beams);
+            DA.SetDataList(1, nodes);
+
 
         }
 
