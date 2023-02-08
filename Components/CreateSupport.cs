@@ -13,8 +13,8 @@ namespace FEM.Components
         /// </summary>
         public CreateSupport()
           : base("CreateSupport", "sups.",
-              "This is for support",
-              "Masters", "Support")
+              "Creates supports at given point, with given conditions. ",
+              "Masters", "Model")
         {
         }
 

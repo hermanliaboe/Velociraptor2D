@@ -1,4 +1,3 @@
-using FEM.Classes;
 using Grasshopper;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
@@ -17,8 +16,8 @@ namespace FEM.Components
         /// new tabs/panels will automatically be created.
         /// </summary>
         public FEMSolver()
-          : base("FEM", "femmern",
-            "FEM solver",
+          : base("Dynamic FEMSolver", "femmern",
+            "FEM solver with Newmark method",
             "Masters", "FEM")
         {
         }
@@ -28,8 +27,7 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            //Input should only be the assembled modell
-            pManager.AddGenericParameter("Assembled modell","Ass.mod","Input for the assembled modell", GH_ParamAccess.item);
+            //kode kode kode
         }
 
         /// <summary>
@@ -37,7 +35,6 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            //Output: could be the calculaded modell, or perhaps the strains, strains, etc directly
         }
 
         /// <summary>
@@ -47,34 +44,6 @@ namespace FEM.Components
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-            List<Assembly> assembly = new List<Assembly>();
-            DA.GetData(0, ref assembly);
-
-            //Input for element definition:
-            double e = 1;   //E-moduls
-            double a = 0.1; //Areal
-            double v = 0.3; //Poisson-ratio, if needed
-            //End
-
-            //Assembly of global stiffness matrix
-            //End
-
-            //Applying BC to K
-            //End
-
-            //Calculate element stresses
-            //End
-
-
-
-
-
-
-
-
-
-
-
         }
 
         /// <summary>
