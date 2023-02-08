@@ -34,7 +34,7 @@ namespace FEM.Components.Deconstructors
             pManager.AddGenericParameter("beams", "sNode", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("supports", "sup", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("Loads", "loads", "", GH_ParamAccess.list);
-
+            pManager.AddGenericParameter("Nodes","nodes","",GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace FEM.Components.Deconstructors
             DA.SetDataList(0, assembly.beamList);
             DA.SetDataList(1, assembly.supportList);
             DA.SetDataList(2, assembly.loadList);
-
+            DA.SetDataList(3, assembly.nodeList);
         }
 
         /// <summary>

@@ -30,6 +30,8 @@ namespace FEM.Components
             pManager.AddGenericParameter("Beams", "beams", "Input for all beams", GH_ParamAccess.list);
             pManager.AddGenericParameter("Supports", "sups", "Input for all supports", GH_ParamAccess.list);
             pManager.AddGenericParameter("Loads", "loads", "Input for all loads", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Nodes", "nodes", "Input for all nodes", GH_ParamAccess.list);
+
         }
 
         /// <summary>
@@ -49,10 +51,14 @@ namespace FEM.Components
             List<BeamElement> beams = new List<BeamElement>();
             List<Support> supports = new List<Support>();
             List<Load> loads = new List<Load>();
+            List<Node> nodes = new List<Node>();
+
 
             DA.GetDataList(0,  beams);
             DA.GetDataList(1,  supports);
             DA.GetDataList(2,  loads);
+            DA.GetDataList(3, nodes);
+
 
             //Check for where the support is located, and if found the correct beam gets new BC
 
@@ -80,10 +86,8 @@ namespace FEM.Components
                 }                    
              }
 
-            Assembly assembly = new Assembly(beams, supports, loads);
+            Assembly assembly = new Assembly(beams, supports, loads, nodes);
             DA.SetData(0, assembly);
-
-
         }
 
     
