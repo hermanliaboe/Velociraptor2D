@@ -60,9 +60,10 @@ namespace FEM.Components
             List<BeamElement> elements = new List<BeamElement>();
             double E = 7000; //MPa
             double A = 10000; //mm^2
+            double I = 12000;
 
             Matrices matrices = new Matrices();
-            LA.Matrix<Double> globalK = matrices.buildGlobalK(dof, elements, E, A);
+            LA.Matrix<Double> globalK = matrices.BuildGlobalK(dof, elements, E, A, I);
       
         }
 
