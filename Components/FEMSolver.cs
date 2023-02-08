@@ -3,6 +3,7 @@ using Grasshopper.Kernel;
 using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 
 namespace FEM.Components
 {
@@ -44,6 +45,40 @@ namespace FEM.Components
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+            // Get input and deconstruct assembly into beams, loads and supports. 
+            List<Assembly> assembly = new List<Assembly>();
+            DA.GetData(0, ref assembly);
+
+
+            beamList = assembly.beamList;
+            supportList = assembly.supportList;
+            loadList = assembly.loadList;
+
+            //Input for element definition:
+            double e = 1;   //E-moduls
+            double a = 0.1; //Areal
+            double v = 0.3; //Poisson-ratio, if needed
+
+            int nDOF = 4;
+            int nNodes = 
+
+
+            //End
+
+            //Assembly of global stiffness matrix
+
+
+
+
+
+
+            //End
+
+            //Applying BC to K
+            //End
+
+            //Calculate element stresses
+            //End
         }
 
         /// <summary>
