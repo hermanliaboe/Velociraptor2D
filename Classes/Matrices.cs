@@ -36,7 +36,18 @@ namespace FEM.Classes
                 int inod = element.startNode.globalID;
                 int jnod = element.endNode.globalID;
                 LA.Matrix<double> ke = GetKel(element, E, A, I);
-                
+                LA.Matrix<double> globalKcopy1 = globalK.Clone();
+                globalKcopy1.SetSubMatrix(inod*3,jnod*3,ke.SubMatrix(0,3,0,3));
+
+                /* shit from console app
+                 int inod = 3;
+            int jnod = 5;
+            LA.Matrix<double> globalK = LA.Matrix<double>.Build.Dense(12,12,1);
+            LA.Matrix<double> ke11 = LA.Matrix<double>.Build.Dense(3, 3, 1);
+            LA.Matrix<double> submat = globalK.SubMatrix(inod, 3, jnod, 3);
+            globalK.SetSubMatrix(inod, jnod, submat + ke11);
+                 */
+
             }
 
             return globalK;
@@ -74,12 +85,22 @@ namespace FEM.Classes
             kEl[0, 5] = 0; kEl[1, 5] = -ealB; kEl[2, 5] = ealC; kEl[3, 5] = 0; kEl[4, 5] = ealB; kEl[5, 5] = ealC;
             kEl[0, 6] = 0; kEl[1, 6] = -ealC; kEl[2, 6] = ealD; kEl[3, 6] = 0; kEl[4, 6] = ealC; kEl[5, 6] = ealE;
 
+
+            LA.Matrix<double> tM = LA.Matrix<double>.Build.Dense(nNode * 3, nNode * 3); 
+
+            double c = Math.Cos((x2 - x1) / l);
+            double s = Math.Sin((z2 - z1) / l);
+            tM[0, 1] = c; tM[1, 1] = s; tM[2, 1] = 0; tM[3, 1] = 0; tM[4, 1] = 0; tM[5, 1] = 0;
+            tM[0, 2] = -s; tM[1, 2] = c; tM[2, 2] = 0; tM[3, 2] = 0; tM[4, 2] = 0; tM[5, 2] = 0;
+            tM[0, 3] = 0; tM[1, 3] = 0; tM[2, 3] = 1; tM[3, 3] = 0; tM[4, 3] = 0; tM[5, 3] = 0;
+            tM[0, 4] = 0; tM[1, 4] = 0; tM[2, 4] = 0; tM[3, 4] = c; tM[4, 4] = s; tM[5, 4] = 0;
+            tM[0, 5] = 0; tM[1, 5] = 0; tM[2, 5] = 0; tM[3, 5] = -s; tM[4, 5] = c; tM[5, 5] = 0;
+            tM[0, 6] = 0; tM[1, 6] = 0; tM[2, 6] = 0; tM[3, 6] = 0; tM[4, 6] = 0; tM[5, 6] = 1; 
             
-            LA.Matrix<double> T = LA.Matrix<double>.Build.Dense(nNode * 3, nNode * 3);
-
-
-
-            return kEl;
+            LA.Matrix<double> tMT = tM.Transpose(); 
+            LA.Matrix<double> kElG = tMT.Multiply(kEl).Multiply(tM); 
+            
+            return kElG;
         }
     }
 }
