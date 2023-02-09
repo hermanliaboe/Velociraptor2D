@@ -46,6 +46,8 @@ namespace FEM.Components
         {
             pManager.AddPointParameter("New points","","",GH_ParamAccess.list);
             pManager.AddLineParameter("New geometry","lines","", GH_ParamAccess.list);
+            pManager.AddGenericParameter(" Global K", "globK", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Global K supports", "globksup", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -57,21 +59,29 @@ namespace FEM.Components
         {
             Classes.Assembly model = new Classes.Assembly();
             DA.GetData(0, ref model);
+            
 
             List<Load> loads = model.loadList;
 
             int dof = model.nodeList.Count*3;
             List<BeamElement> elements = new List<BeamElement>();
+            List<Support> supports = new List<Support>();
+            List<Node> nodes = new List<Node>();
+
             double E = 7000; //MPa
             double A = 10000; //mm^2
             double I = 12000;
 
             Matrices matrices = new Matrices();
-            LA.Matrix<Double> globalK = matrices.BuildGlobalK(dof, elements, E, A, I);
-            LA.Matrix<double> forceVec = BuildForceVector(loads, dof);
-            
 
-            
+
+
+            LA.Matrix<Double> globalK = matrices.BuildGlobalK(dof, elements, E, A, I);
+            LA.Matrix<Double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
+            LA.Matrix<double> forceVec = BuildForceVector(loads, dof);
+
+            DA.SetData(0, globalK);
+            DA.SetData(0, globalKsup);
 
 
         }

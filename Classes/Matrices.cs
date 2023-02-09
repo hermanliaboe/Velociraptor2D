@@ -119,7 +119,7 @@ namespace FEM.Classes
             return kElG;
         }
 
-        public LA.Matrix<double> GetKglobWithSupports(int dof, LA.Matrix<double> globalK, List<Support> Support, List<Node> Node)
+        public LA.Matrix<double> BuildGlobalKsup(int dof, LA.Matrix<double> globalK, List<Support> Support, List<Node> Node)
         {
             foreach (Support support in Support)
             {
@@ -155,7 +155,8 @@ namespace FEM.Classes
                     }
                 }
             }
-            return globalK;
+            LA.Matrix<double> globalKsup = globalK;
+            return globalKsup;
         }
 
     }
