@@ -1,8 +1,11 @@
-﻿using Rhino.Display;
+﻿using FEM.Classes;
+using GH_IO.Serialization;
+using Rhino.Display;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using LA = MathNet.Numerics.LinearAlgebra;
@@ -21,6 +24,7 @@ namespace FEM.Classes
         {
             this.globalK = BuildGlobalK(dof, elements, E, A, I);
 
+
         }
 
         public Matrices()
@@ -36,16 +40,16 @@ namespace FEM.Classes
             {
                 int nDof = 3;
                 //Retrive element k from function
-                LA.Matrix<double> ke = GetKel(element, E, A, I); 
+                LA.Matrix<double> ke = GetKel(element, E, A, I);
 
                 //Get nodeID and *3 to get globalK placement
                 int idS = element.startNode.globalID * nDof;
                 int idE = element.endNode.globalID * nDof;
 
                 //divide the element matrix into four matrices
-                LA.Matrix<double> ke11 = ke.SubMatrix(0,    nDof, 0,    nDof);
-                LA.Matrix<double> ke12 = ke.SubMatrix(0,    nDof, nDof, nDof);
-                LA.Matrix<double> ke21 = ke.SubMatrix(nDof, nDof, 0,    nDof);
+                LA.Matrix<double> ke11 = ke.SubMatrix(0, nDof, 0, nDof);
+                LA.Matrix<double> ke12 = ke.SubMatrix(0, nDof, nDof, nDof);
+                LA.Matrix<double> ke21 = ke.SubMatrix(nDof, nDof, 0, nDof);
                 LA.Matrix<double> ke22 = ke.SubMatrix(nDof, nDof, nDof, nDof);
 
                 //Puts the four matrices into the correct place in globalK (yes, correct buddy)
@@ -98,7 +102,7 @@ namespace FEM.Classes
             kEl[0, 6] = 0; kEl[1, 6] = -ealC; kEl[2, 6] = ealD; kEl[3, 6] = 0; kEl[4, 6] = ealC; kEl[5, 6] = ealE;
 
             //Creates T-matrix to adjust k element to global axis. 
-            LA.Matrix<double> tM = LA.Matrix<double>.Build.Dense(nNode * 3, nNode * 3); 
+            LA.Matrix<double> tM = LA.Matrix<double>.Build.Dense(nNode * 3, nNode * 3);
 
             double c = Math.Cos((x2 - x1) / l);
             double s = Math.Sin((z2 - z1) / l);
@@ -108,12 +112,51 @@ namespace FEM.Classes
             tM[0, 3] = 0; tM[1, 3] = 0; tM[2, 3] = 1; tM[3, 3] = 0; tM[4, 3] = 0; tM[5, 3] = 0;
             tM[0, 4] = 0; tM[1, 4] = 0; tM[2, 4] = 0; tM[3, 4] = c; tM[4, 4] = s; tM[5, 4] = 0;
             tM[0, 5] = 0; tM[1, 5] = 0; tM[2, 5] = 0; tM[3, 5] = -s; tM[4, 5] = c; tM[5, 5] = 0;
-            tM[0, 6] = 0; tM[1, 6] = 0; tM[2, 6] = 0; tM[3, 6] = 0; tM[4, 6] = 0; tM[5, 6] = 1; 
-            
-            LA.Matrix<double> tMT = tM.Transpose(); 
-            LA.Matrix<double> kElG = tMT.Multiply(kEl).Multiply(tM); 
-            
+            tM[0, 6] = 0; tM[1, 6] = 0; tM[2, 6] = 0; tM[3, 6] = 0; tM[4, 6] = 0; tM[5, 6] = 1;
+
+            LA.Matrix<double> tMT = tM.Transpose();
+            LA.Matrix<double> kElG = tMT.Multiply(kEl).Multiply(tM);
             return kElG;
         }
+
+        public LA.Matrix<double> GetKglobWithSupports(int dof, LA.Matrix<double> globalK, List<Support> Support, List<Node> Node)
+        {
+            foreach (Support support in Support)
+            {
+                foreach (Node node in Node)
+                {
+                    
+                    if (support.point == node.point)
+                    {
+                        LA.Matrix<double> row = LA.Matrix<double>.Build.Dense(dof, 1);
+                        LA.Matrix<double> col = LA.Matrix<double>.Build.Dense(1, dof);
+                        int idN = node.globalID;
+
+                        if (support.tz == true)
+                        {
+                            globalK.SetSubMatrix(idN, 0, row);
+                            globalK.SetSubMatrix(0, idN, col);
+                            globalK[idN, idN] = 1;
+                        }
+                        if (support.tx == true)
+                        {
+                            idN = idN + 1;
+                            globalK.SetSubMatrix(idN, 0, row);
+                            globalK.SetSubMatrix(0, idN, col);
+                            globalK[idN, idN] = 1;
+                        }
+                        if (support.ry == true)
+                        {
+                            idN = idN + 2;
+                            globalK.SetSubMatrix(idN, 0, row);
+                            globalK.SetSubMatrix(0, idN, col);
+                            globalK[idN, idN] = 1;
+                        }
+                    }
+                }
+            }
+            return globalK;
+        }
+
     }
 }
