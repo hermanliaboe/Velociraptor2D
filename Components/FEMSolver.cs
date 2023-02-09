@@ -25,7 +25,7 @@ namespace FEM.Components
         /// new tabs/panels will automatically be created.
         /// </summary>
         public FEMSolver()
-          : base("Dynamic FEMSolver", "femmern",
+          : base("Static FEMSolver", "femmern",
             "FEM solver with Newmark method",
             "Masters", "FEM")
         {
@@ -44,8 +44,10 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddPointParameter("New points","","",GH_ParamAccess.list);
-            pManager.AddLineParameter("New geometry","lines","", GH_ParamAccess.list);
+            //pManager.AddPointParameter("New points","","",GH_ParamAccess.list);
+            //pManager.AddLineParameter("New geometry","lines","", GH_ParamAccess.list);
+            pManager.AddMatrixParameter(" Global K", "globK", "", GH_ParamAccess.item);
+            pManager.AddMatrixParameter("Global K supports", "globksup", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -57,21 +59,29 @@ namespace FEM.Components
         {
             Classes.Assembly model = new Classes.Assembly();
             DA.GetData(0, ref model);
+            
 
             List<Load> loads = model.loadList;
+            List<BeamElement> elements = model.beamList;
+            List<Support> supports = model.supportList;
+            List<Node> nodes = model.nodeList;
+
+
 
             int dof = model.nodeList.Count*3;
-            List<BeamElement> elements = new List<BeamElement>();
+          
             double E = 7000; //MPa
             double A = 10000; //mm^2
             double I = 12000;
 
             Matrices matrices = new Matrices();
-            LA.Matrix<Double> globalK = matrices.BuildGlobalK(dof, elements, E, A, I);
-            LA.Matrix<double> forceVec = BuildForceVector(loads, dof);
-            
 
-            
+            LA.Matrix<double> globalK = matrices.BuildGlobalK(dof, elements, E, A, I);
+            //LA.Matrix<double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
+            LA.Matrix<double> forceVec = BuildForceVector(loads, dof);
+
+            DA.SetData(0, globalK);
+            //DA.SetData(1, globalKsup);
 
 
         }
