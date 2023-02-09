@@ -8,6 +8,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using LA = MathNet.Numerics.LinearAlgebra;
 
 namespace FEM.Classes
@@ -34,7 +35,9 @@ namespace FEM.Classes
 
         public LA.Matrix<double> BuildGlobalK(int dof, List<BeamElement> elements, double E, double A, double I)
         {
-            LA.Matrix<double> globalK = LA.Matrix<double>.Build.Dense(dof, dof);
+            LA.Matrix<double> globalK = LA.Matrix<double>.Build.Dense(dof, dof, 0);
+
+            LA.Matrix<double> testMat = GetKel(elements[0], E, A, I);
 
             foreach (var element in elements)
             {
@@ -65,7 +68,7 @@ namespace FEM.Classes
                 }
             }
 
-            return globalK;
+            return testMat;
         }
 
         //Fuction to create element k. Locally first, then adjusted to global axis with T-matrix.  
@@ -86,7 +89,7 @@ namespace FEM.Classes
             double l = Math.Sqrt(Math.Pow(z2 - z1, 2) + Math.Pow(x2 - x1, 2));
 
             //Define standard k for two node beam element. 
-            LA.Matrix<double> kEl = LA.Matrix<double>.Build.Dense(nNode * 3, nNode * 3);
+            LA.Matrix<double> kEl = LA.Matrix<double>.Build.Dense(nNode * 3, nNode * 3, 0);
 
             double ealA = (E * A) / l;
             double ealB = 12 * (E * I) / Math.Pow(l, 3);
@@ -94,31 +97,34 @@ namespace FEM.Classes
             double ealD = 4 * (E * I) / l;
             double ealE = 2 * (E * I) / l;
 
-            kEl[0, 1] = ealA; kEl[1, 1] = 0; kEl[2, 1] = 0; kEl[3, 1] = -ealA; kEl[4, 1] = 0; kEl[5, 1] = 0;
-            kEl[0, 2] = 0; kEl[1, 2] = ealB; kEl[2, 2] = -ealC; kEl[3, 2] = 0; kEl[4, 2] = -ealB; kEl[5, 2] = -ealC;
-            kEl[0, 3] = 0; kEl[1, 3] = -ealC; kEl[2, 3] = ealD; kEl[3, 3] = 0; kEl[4, 3] = ealC; kEl[5, 3] = ealE;
-            kEl[0, 4] = -ealA; kEl[1, 4] = 0; kEl[2, 4] = 0; kEl[3, 4] = ealA; kEl[4, 4] = 0; kEl[5, 4] = 0;
-            kEl[0, 5] = 0; kEl[1, 5] = -ealB; kEl[2, 5] = ealC; kEl[3, 5] = 0; kEl[4, 5] = ealB; kEl[5, 5] = ealC;
-            kEl[0, 6] = 0; kEl[1, 6] = -ealC; kEl[2, 6] = ealD; kEl[3, 6] = 0; kEl[4, 6] = ealC; kEl[5, 6] = ealE;
+
+
+            kEl[0, 0] = ealA; kEl[0, 1] = 0;    kEl[0, 2] = 0;     kEl[0, 3] = -ealA; kEl[0, 4] = 0;     kEl[0, 5] = 0;
+            kEl[1, 0] = 0;    kEl[1, 1] = ealB; kEl[1, 2] = -ealC; kEl[1, 3] = 0;     kEl[1, 4] = -ealB; kEl[1, 5] = -ealC;
+            kEl[2, 0] = 0;    kEl[2, 1] = -ealC;kEl[2, 2] = ealD;  kEl[2, 3] = 0;     kEl[2, 4] = ealC;  kEl[2, 5] = ealE;
+            kEl[3, 0] = -ealA;kEl[3, 1] = 0;    kEl[3, 2] = 0;     kEl[3, 3] = ealA;  kEl[3, 4] = 0;     kEl[3, 5] = 0;
+            kEl[4, 0] = 0;    kEl[4, 1] = -ealB;kEl[4, 2] = ealC;  kEl[4, 3] = 0;     kEl[4, 4] = ealB;  kEl[4, 5] = ealC;
+            kEl[5, 0] = 0;    kEl[5, 1] = -ealC;kEl[5, 2] = ealD;  kEl[5, 3] = 0;     kEl[5, 4] = ealC;  kEl[5, 5] = ealE;
 
             //Creates T-matrix to adjust k element to global axis. 
-            LA.Matrix<double> tM = LA.Matrix<double>.Build.Dense(nNode * 3, nNode * 3);
+            LA.Matrix<double> tM = LA.Matrix<double>.Build.Dense(nNode * 3, nNode * 3, 0);
 
-            double c = Math.Cos((x2 - x1) / l);
-            double s = Math.Sin((z2 - z1) / l);
+            double c = (x2 - x1) / l;
+            double s = (z2 - z1) / l;
 
-            tM[0, 1] = c; tM[1, 1] = s; tM[2, 1] = 0; tM[3, 1] = 0; tM[4, 1] = 0; tM[5, 1] = 0;
-            tM[0, 2] = -s; tM[1, 2] = c; tM[2, 2] = 0; tM[3, 2] = 0; tM[4, 2] = 0; tM[5, 2] = 0;
-            tM[0, 3] = 0; tM[1, 3] = 0; tM[2, 3] = 1; tM[3, 3] = 0; tM[4, 3] = 0; tM[5, 3] = 0;
-            tM[0, 4] = 0; tM[1, 4] = 0; tM[2, 4] = 0; tM[3, 4] = c; tM[4, 4] = s; tM[5, 4] = 0;
-            tM[0, 5] = 0; tM[1, 5] = 0; tM[2, 5] = 0; tM[3, 5] = -s; tM[4, 5] = c; tM[5, 5] = 0;
-            tM[0, 6] = 0; tM[1, 6] = 0; tM[2, 6] = 0; tM[3, 6] = 0; tM[4, 6] = 0; tM[5, 6] = 1;
+            tM[0, 0] = c;  tM[0, 1] = s; tM[0, 2] = 0; tM[0, 3] = 0; tM[0, 4] = 0; tM[0, 5] = 0;
+            tM[1, 0] = -s; tM[1, 1] = c; tM[1, 2] = 0; tM[1, 3] = 0; tM[1, 4] = 0; tM[1, 5] = 0;
+            tM[2, 0] = 0;  tM[2, 1] = 0; tM[2, 2] = 1; tM[2, 3] = 0; tM[2, 4] = 0; tM[2, 5] = 0;
+            tM[3, 0] = 0;  tM[3, 1] = 0; tM[3, 2] = 0; tM[3, 3] = c; tM[3, 4] = s; tM[3, 5] = 0;
+            tM[4, 0] = 0;  tM[4, 1] = 0; tM[4, 2] = 0; tM[4, 3] = -s;tM[4, 4] = c; tM[4, 5] = 0;
+            tM[5, 0] = 0;  tM[5, 1] = 0; tM[5, 2] = 0; tM[5, 3] = 0; tM[5, 4] = 0; tM[5, 5] = 1;
 
             LA.Matrix<double> tMT = tM.Transpose();
-            LA.Matrix<double> kElG = tMT.Multiply(kEl).Multiply(tM);
+            LA.Matrix<double> kElGtemp = tMT.Multiply(kEl);
+            LA.Matrix<double> kElG = kElGtemp.Multiply(tM);
             return kElG;
         }
-
+        /*
         public LA.Matrix<double> BuildGlobalKsup(int dof, LA.Matrix<double> globalK, List<Support> Support, List<Node> Node)
         {
             foreach (Support support in Support)
@@ -128,8 +134,8 @@ namespace FEM.Classes
                     
                     if (support.point == node.point)
                     {
-                        LA.Matrix<double> row = LA.Matrix<double>.Build.Dense(dof, 1);
-                        LA.Matrix<double> col = LA.Matrix<double>.Build.Dense(1, dof);
+                        LA.Matrix<double> col = LA.Matrix<double>.Build.Dense(dof, 1, 0);
+                        LA.Matrix<double> row = LA.Matrix<double>.Build.Dense(1, dof, 0);
                         int idN = node.globalID;
 
                         if (support.tz == true)
@@ -158,6 +164,7 @@ namespace FEM.Classes
             LA.Matrix<double> globalKsup = globalK;
             return globalKsup;
         }
+        */
 
     }
 }
