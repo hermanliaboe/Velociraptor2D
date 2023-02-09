@@ -37,7 +37,7 @@ namespace FEM.Classes
         {
             LA.Matrix<double> globalK = LA.Matrix<double>.Build.Dense(dof, dof, 0);
 
-            LA.Matrix<double> testMat = GetKel(elements[0], E, A, I);
+            //LA.Matrix<double> testMat = GetKel(elements[0], E, A, I);
 
             foreach (var element in elements)
             {
@@ -68,7 +68,7 @@ namespace FEM.Classes
                 }
             }
 
-            return testMat;
+            return globalK;
         }
 
         //Fuction to create element k. Locally first, then adjusted to global axis with T-matrix.  
@@ -83,19 +83,19 @@ namespace FEM.Classes
             double x1 = startNode.point.X;
 
             Node endNode = beam.endNode;
-            double z2 = startNode.point.Z;
-            double x2 = startNode.point.X;
+            double z2 = endNode.point.Z;
+            double x2 = endNode.point.X;
 
-            double l = Math.Sqrt(Math.Pow(z2 - z1, 2) + Math.Pow(x2 - x1, 2));
+            double l = (Math.Sqrt(Math.Pow(z2 - z1, 2.0) + Math.Pow(x2 - x1, 2.0)));
 
             //Define standard k for two node beam element. 
             LA.Matrix<double> kEl = LA.Matrix<double>.Build.Dense(nNode * 3, nNode * 3, 0);
 
             double ealA = (E * A) / l;
-            double ealB = 12 * (E * I) / Math.Pow(l, 3);
-            double ealC = 6 * (E * I) / Math.Pow(l, 2);
-            double ealD = 4 * (E * I) / l;
-            double ealE = 2 * (E * I) / l;
+            double ealB = 12.0 * (E * I) / Math.Pow(l, 3.0);
+            double ealC = 6.0 * (E * I) / Math.Pow(l, 2.0);
+            double ealD = 4.0 * (E * I) / l;
+            double ealE = 2.0 * (E * I) / l;
 
 
 
@@ -124,12 +124,15 @@ namespace FEM.Classes
             LA.Matrix<double> kElG = kElGtemp.Multiply(tM);
             return kElG;
         }
-        /*
-        public LA.Matrix<double> BuildGlobalKsup(int dof, LA.Matrix<double> globalK, List<Support> Support, List<Node> Node)
+        
+        public LA.Matrix<double> BuildGlobalKsup(int dof, LA.Matrix<double> globalK, List<Support> supports, List<Node> nodes)
         {
-            foreach (Support support in Support)
+            LA.Matrix<double> globalKsup = globalK.Clone();
+
+
+            foreach (Support support in supports)
             {
-                foreach (Node node in Node)
+                foreach (Node node in nodes)
                 {
                     
                     if (support.point == node.point)
@@ -138,33 +141,31 @@ namespace FEM.Classes
                         LA.Matrix<double> row = LA.Matrix<double>.Build.Dense(1, dof, 0);
                         int idN = node.globalID;
 
-                        if (support.tz == true)
-                        {
-                            globalK.SetSubMatrix(idN, 0, row);
-                            globalK.SetSubMatrix(0, idN, col);
-                            globalK[idN, idN] = 1;
-                        }
+                        
                         if (support.tx == true)
                         {
-                            idN = idN + 1;
-                            globalK.SetSubMatrix(idN, 0, row);
-                            globalK.SetSubMatrix(0, idN, col);
-                            globalK[idN, idN] = 1;
+                            globalKsup.SetSubMatrix(idN*3, 0, row);
+                            globalKsup.SetSubMatrix(0, idN*3, col);
+                            globalKsup[idN*3, idN*3] = 1;
+                        }
+                        if (support.tz == true)
+                        {
+                            globalKsup.SetSubMatrix(idN * 3 + 1, 0, row);
+                            globalKsup.SetSubMatrix(0, idN * 3 + 1 , col);
+                            globalKsup[idN * 3 + 1, idN * 3 + 1] = 1;
                         }
                         if (support.ry == true)
                         {
-                            idN = idN + 2;
-                            globalK.SetSubMatrix(idN, 0, row);
-                            globalK.SetSubMatrix(0, idN, col);
-                            globalK[idN, idN] = 1;
+                            globalKsup.SetSubMatrix(idN*3 +2, 0, row);
+                            globalKsup.SetSubMatrix(0, idN*3 +2, col);
+                            globalKsup[idN*3 +2, idN*3 +2] = 1;
                         }
                     }
                 }
             }
-            LA.Matrix<double> globalKsup = globalK;
             return globalKsup;
         }
-        */
+        
 
     }
 }

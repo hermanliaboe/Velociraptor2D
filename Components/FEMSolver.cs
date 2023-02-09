@@ -46,8 +46,13 @@ namespace FEM.Components
         {
             //pManager.AddPointParameter("New points","","",GH_ParamAccess.list);
             //pManager.AddLineParameter("New geometry","lines","", GH_ParamAccess.list);
-            pManager.AddMatrixParameter(" Global K", "globK", "", GH_ParamAccess.item);
-            pManager.AddMatrixParameter("Global K supports", "globksup", "", GH_ParamAccess.item);
+            //pManager.AddMatrixParameter(" Global K", "globK", "", GH_ParamAccess.item);
+            //pManager.AddMatrixParameter("Global K supports", "globksup", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("item in matrix","","",GH_ParamAccess.item);
+            pManager.AddGenericParameter("globalK","","",GH_ParamAccess.item);
+            pManager.AddGenericParameter("globalKsup", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("forceVec", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("displacements", "", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -70,18 +75,25 @@ namespace FEM.Components
 
             int dof = model.nodeList.Count*3;
           
-            double E = 7000; //MPa
-            double A = 10000; //mm^2
-            double I = 12000;
+            double E = 10000.0; //MPa
+            double A = 10000.0; //mm^2
+            double I = (1.0/12.0)*Math.Pow(100.0,4.0);
 
             Matrices matrices = new Matrices();
 
             LA.Matrix<double> globalK = matrices.BuildGlobalK(dof, elements, E, A, I);
-            //LA.Matrix<double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
+            LA.Matrix<double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
             LA.Matrix<double> forceVec = BuildForceVector(loads, dof);
+           
+            LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
 
-            DA.SetData(0, globalK);
+            //DA.SetData(0, globalK);
             //DA.SetData(1, globalKsup);
+            DA.SetData(0, globalKsup[9,9]);
+            DA.SetData(1, globalK);
+            DA.SetData(2, globalKsup);
+            DA.SetData(3, forceVec);
+            DA.SetData(4, displacements);
 
 
         }
