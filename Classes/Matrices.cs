@@ -24,6 +24,7 @@ namespace FEM.Classes
         {
             this.globalK = BuildGlobalK(dof, elements, E, A, I);
 
+
         }
 
         public Matrices()
@@ -131,20 +132,20 @@ namespace FEM.Classes
                         LA.Matrix<double> col = LA.Matrix<double>.Build.Dense(1, dof);
                         int idN = node.globalID;
 
-                        if (support.tz = true)
+                        if (support.tz == true)
                         {
                             globalK.SetSubMatrix(idN, 0, row);
                             globalK.SetSubMatrix(0, idN, col);
                             globalK[idN, idN] = 1;
                         }
-                        if (support.tx = true)
+                        if (support.tx == true)
                         {
                             idN = idN + 1;
                             globalK.SetSubMatrix(idN, 0, row);
                             globalK.SetSubMatrix(0, idN, col);
                             globalK[idN, idN] = 1;
                         }
-                        if (support.ry = true)
+                        if (support.ry == true)
                         {
                             idN = idN + 2;
                             globalK.SetSubMatrix(idN, 0, row);
@@ -154,6 +155,7 @@ namespace FEM.Classes
                     }
                 }
             }
+            return globalK;
         }
 
     }
