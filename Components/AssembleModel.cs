@@ -72,7 +72,6 @@ namespace FEM.Components
                         startNode.zBC = sup.tz;
                         startNode.xBC = sup.tx;
                         startNode.ry = sup.ry;
-
                     }
 
                     Node endNode = b.endNode;
@@ -81,7 +80,6 @@ namespace FEM.Components
                         endNode.zBC = sup.tz;
                         endNode.xBC = sup.tx;
                         endNode.ry = sup.ry;
-
                     }
                 }                    
              }

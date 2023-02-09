@@ -79,6 +79,13 @@ namespace FEM.Components
         {
             LA.Matrix<double> forceVec = LA.Matrix<double>.Build.Dense(dof, 1);
 
+            foreach (Load load in loads)
+            {
+                forceVec[load.nodeID*3, 0] = load.vector.X;
+                forceVec[load.nodeID*3 + 1, 0] = load.vector.Z;
+                // forceVec[load.nodeID*3 + 2, 0] = load.vector.r; moment
+            }
+
 
 
             return forceVec;
