@@ -30,14 +30,11 @@ namespace FEM.Classes
 
         public Matrices()
         {
-
         }
 
         public LA.Matrix<double> BuildGlobalK(int dof, List<BeamElement> elements, double E, double A, double I)
         {
             LA.Matrix<double> globalK = LA.Matrix<double>.Build.Dense(dof, dof, 0);
-
-            //LA.Matrix<double> testMat = GetKel(elements[0], E, A, I);
 
             foreach (var element in elements)
             {

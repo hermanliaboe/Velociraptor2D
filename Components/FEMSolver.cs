@@ -75,7 +75,7 @@ namespace FEM.Components
 
             int dof = model.nodeList.Count*3;
           
-            double E = 10000.0; //MPa
+            double E = 210000.0; //MPa
             double A = 10000.0; //mm^2
             double I = (1.0/12.0)*Math.Pow(100.0,4.0);
 

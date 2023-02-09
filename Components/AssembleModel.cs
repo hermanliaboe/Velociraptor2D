@@ -96,6 +96,7 @@ namespace FEM.Components
             }
 
             Assembly assembly = new Assembly(beams, supports, loads, nodes);
+
             DA.SetData(0, assembly);
         }
 
