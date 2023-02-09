@@ -86,6 +86,17 @@ namespace FEM.Components
                 }                    
              }
 
+            foreach (Load load in loads)
+            {
+                foreach (Node node in nodes)
+                {
+                    if (node.point == load.point)
+                    {
+                        load.nodeID = node.globalID;
+                    }
+                }
+            }
+
             Assembly assembly = new Assembly(beams, supports, loads, nodes);
             DA.SetData(0, assembly);
         }

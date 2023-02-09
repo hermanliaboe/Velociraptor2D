@@ -11,6 +11,7 @@ namespace FEM.Classes
     {
         public Point3d point;
         public Vector3d vector;
+        public int nodeID;
 
 
         public Load(){ }

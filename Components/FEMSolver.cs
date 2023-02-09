@@ -56,6 +56,10 @@ namespace FEM.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Classes.Assembly model = new Classes.Assembly();
+            DA.GetData(0, ref model);
+
+            List<Load> loads = model.loadList;
+
             int dof = model.nodeList.Count*3;
             List<BeamElement> elements = new List<BeamElement>();
             double E = 7000; //MPa
@@ -64,10 +68,22 @@ namespace FEM.Components
 
             Matrices matrices = new Matrices();
             LA.Matrix<Double> globalK = matrices.BuildGlobalK(dof, elements, E, A, I);
-      
+            LA.Matrix<double> forceVec = BuildForceVector(loads, dof);
+            
+
+            
+
+
+        }
+        LA.Matrix<double> BuildForceVector(List<Load> loads, int dof)
+        {
+            LA.Matrix<double> forceVec = LA.Matrix<double>.Build.Dense(dof, 1);
+
+
+
+            return forceVec;
         }
 
-        
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
