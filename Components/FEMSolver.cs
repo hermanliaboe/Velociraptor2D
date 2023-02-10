@@ -78,10 +78,7 @@ namespace FEM.Components
 
             int dof = model.nodeList.Count*3;
           
-            double E = 210000.0; //MPa
-            double A = 100.0; //mm^2
-            double I = (1.0/12.0)*Math.Pow(10.0,4.0);
-
+         
             Matrices matrices = new Matrices();
 
             LA.Matrix<double> globalK = matrices.BuildGlobalK(dof, elements);
