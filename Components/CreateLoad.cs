@@ -23,8 +23,11 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
+           
             pManager.AddPointParameter("Point","pt","Attact point for force vector", GH_ParamAccess.item);
-            pManager.AddVectorParameter("Vector", "vec", "Vector to decribe sice and angle of force", GH_ParamAccess.item);
+            pManager.AddVectorParameter("Force Vec", "Fvec", "Vector to decribe sice and angle of force", GH_ParamAccess.item);
+            pManager.AddVectorParameter("Moment Vec", "Mvec", "Vector to decribe sice and rotation of moment", GH_ParamAccess.item);
+
         }
 
         /// <summary>
@@ -42,14 +45,17 @@ namespace FEM.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Point3d loadPt = new Point3d();
-            Vector3d loadVec = new Vector3d();
+            Vector3d forceVec = new Vector3d();
+            Vector3d momentVec = new Vector3d();
 
+          
             DA.GetData(0, ref loadPt);
-            DA.GetData(1, ref loadVec);
+            DA.GetData(1, ref forceVec);
+            DA.GetData(2, ref momentVec);
 
 
             List<Load> loadList = new List<Load>();
-            Load load = new Load(loadPt, loadVec);
+            Load load = new Load(loadPt, forceVec, momentVec);
             loadList.Add(load);
 
             DA.SetDataList(0, loadList);
