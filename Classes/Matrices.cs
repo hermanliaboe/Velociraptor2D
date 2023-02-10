@@ -21,9 +21,9 @@ namespace FEM.Classes
         public LA.Matrix<double> globalN;
         public LA.Matrix<double> globalF;
 
-        public Matrices(int dof, List<BeamElement> elements, double E, double A, double I)
+        public Matrices(int dof, List<BeamElement> elements)
         {
-            this.globalK = BuildGlobalK(dof, elements, E, A, I);
+            this.globalK = BuildGlobalK(dof, elements);
 
 
         }
@@ -32,7 +32,7 @@ namespace FEM.Classes
         {
         }
 
-        public LA.Matrix<double> BuildGlobalK(int dof, List<BeamElement> elements, double E, double A, double I)
+        public LA.Matrix<double> BuildGlobalK(int dof, List<BeamElement> elements)
         {
             LA.Matrix<double> globalK = LA.Matrix<double>.Build.Dense(dof, dof, 0);
 
@@ -40,7 +40,7 @@ namespace FEM.Classes
             {
                 int nDof = 3;
                 //Retrive element k from function
-                LA.Matrix<double> ke = GetKel(element, E, A, I);
+                LA.Matrix<double> ke = GetKel(element);
 
                 //Get nodeID and *3 to get globalK placement
                 int idS = element.startNode.globalID * nDof;
@@ -69,7 +69,7 @@ namespace FEM.Classes
         }
 
         //Fuction to create element k. Locally first, then adjusted to global axis with T-matrix.  
-        public LA.Matrix<double> GetKel(BeamElement beam, double E, double A, double I)
+        public LA.Matrix<double> GetKel(BeamElement beam)
         {
             int nNode = 2;  //how many nodes per element
 
@@ -87,6 +87,12 @@ namespace FEM.Classes
 
             //Define standard k for two node beam element. 
             LA.Matrix<double> kEl = LA.Matrix<double>.Build.Dense(nNode * 3, nNode * 3, 0);
+
+            double E = beam.youngsMod;
+            double h = beam.height;
+            double w = beam.width;
+            double A = h * w;
+            double I = (1 / 12) * Math.Pow(h, 3) * w;
 
             double ealA = (E * A) / l;
             double eilB = 12.0 * (E * I) / Math.Pow(l, 3.0);

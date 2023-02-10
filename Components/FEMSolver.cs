@@ -12,6 +12,7 @@ using LA = MathNet.Numerics.LinearAlgebra;
 using Rhino.Commands;
 using Rhino.Render;
 using System.IO;
+using Grasshopper.Kernel.Types;
 
 namespace FEM.Components
 {
@@ -53,6 +54,8 @@ namespace FEM.Components
             pManager.AddGenericParameter("globalKsup", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("forceVec", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("displacements", "", "", GH_ParamAccess.list);
+            //pManager.AddNumberParameter("list of rows in reduced stiffness matrix","","",GH_ParamAccess.list);
+            pManager.AddMatrixParameter("list of rows in reduced stiffness matrix", "", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -81,7 +84,7 @@ namespace FEM.Components
 
             Matrices matrices = new Matrices();
 
-            LA.Matrix<double> globalK = matrices.BuildGlobalK(dof, elements, E, A, I);
+            LA.Matrix<double> globalK = matrices.BuildGlobalK(dof, elements);
             LA.Matrix<double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
             LA.Matrix<double> forceVec = BuildForceVector(loads, dof);
            
@@ -93,8 +96,19 @@ namespace FEM.Components
             {
                 var nodeDisp = "{" + displacements[i, 0] + ", " + displacements[i + 1, 0] + ", " + displacements[i + 2, 0] + "}";
                 dispList.Add(nodeDisp);
-                //.ToString("0.000000")
             }
+
+            Rhino.Geometry.Matrix rhinoMatrix = new Rhino.Geometry.Matrix(dof, dof);
+            for (int i = 0; i < globalKsup.RowCount; i++)
+            {
+                for (int j = 0; j < globalKsup.ColumnCount; j++)
+                {
+                    rhinoMatrix[i,j] = globalKsup[i,j];
+                }
+            }
+
+            //double[,] csGlobalKsup = globalKsup.ToArray();
+            
 
 
             //DA.SetData(0, globalK);
@@ -104,17 +118,17 @@ namespace FEM.Components
             DA.SetData(2, globalKsup);
             DA.SetData(3, forceVec);
             DA.SetDataList(4, dispList);
-
-
+            DA.SetData(5, rhinoMatrix);
         }
+
         LA.Matrix<double> BuildForceVector(List<Load> loads, int dof)
         {
-            LA.Matrix<double> forceVec = LA.Matrix<double>.Build.Dense(dof, 1,0);
+            LA.Matrix<double> forceVec = LA.Matrix<double>.Build.Dense(dof, 1, 0);
 
             foreach (Load load in loads)
             {
-                forceVec[load.nodeID*3, 0] = load.vector.X;
-                forceVec[load.nodeID*3 + 1, 0] = load.vector.Z;
+                forceVec[load.nodeID * 3, 0] = load.vector.X;
+                forceVec[load.nodeID * 3 + 1, 0] = load.vector.Z;
                 // forceVec[load.nodeID*3 + 2, 0] = load.vector.r; moment
             }
 
