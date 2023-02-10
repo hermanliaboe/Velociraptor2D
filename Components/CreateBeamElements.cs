@@ -24,6 +24,7 @@ namespace FEM.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddLineParameter("Lines", "ls", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("CrossSection", "cs","",GH_ParamAccess.item) ;
         }
 
         /// <summary>
@@ -42,7 +43,9 @@ namespace FEM.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             List <Line> lines = new List<Line>();
+            CrossSection cs = new CrossSection();
             DA.GetDataList(0, lines);
+            DA.GetData(1, ref cs);
 
             List<BeamElement> beams = new List<BeamElement>();
             Dictionary<Point3d, Node> existingNodes = new Dictionary<Point3d, Node>();
@@ -80,6 +83,9 @@ namespace FEM.Components
                     nodes.Add(eNode);
                     idc++;
                 }
+                element.height = cs.height;
+                element.width = cs.width;
+                element.youngsMod = cs.youngsMod;
                 beams.Add(element);
             }
 

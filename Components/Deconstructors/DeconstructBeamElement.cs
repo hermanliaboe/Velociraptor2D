@@ -35,6 +35,9 @@ namespace FEM.Components.Deconstructors
             pManager.AddGenericParameter("endNode", "eNode", "", GH_ParamAccess.item);
             pManager.AddLineParameter("line", "l", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("BeamID", "bID", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("height","h","",GH_ParamAccess.item);
+            pManager.AddNumberParameter("width", "w", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("YoungsMod", "E", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -50,6 +53,9 @@ namespace FEM.Components.Deconstructors
             DA.SetData(1, beam.endNode);
             DA.SetData(2, beam.line);
             DA.SetData(3, beam.id);
+            DA.SetData(4, beam.height);
+            DA.SetData(5, beam.width);
+            DA.SetData(6, beam.youngsMod);
         }
 
         /// <summary>

@@ -15,6 +15,9 @@ namespace FEM.Classes
         public Node startNode;
         public Node endNode;
         public Line line;
+        public double height;
+        public double width;
+        public double youngsMod;
 
         public BeamElement() { }
 
