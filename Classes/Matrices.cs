@@ -89,19 +89,19 @@ namespace FEM.Classes
             LA.Matrix<double> kEl = LA.Matrix<double>.Build.Dense(nNode * 3, nNode * 3, 0);
 
             double ealA = (E * A) / l;
-            double ealB = 12.0 * (E * I) / Math.Pow(l, 3.0);
-            double ealC = 6.0 * (E * I) / Math.Pow(l, 2.0);
-            double ealD = 4.0 * (E * I) / l;
-            double ealE = 2.0 * (E * I) / l;
+            double eilB = 12.0 * (E * I) / Math.Pow(l, 3.0);
+            double eilC = 6.0 * (E * I) / Math.Pow(l, 2.0);
+            double eilD = 4.0 * (E * I) / l;
+            double eilE = 2.0 * (E * I) / l;
 
 
 
             kEl[0, 0] = ealA; kEl[0, 1] = 0;    kEl[0, 2] = 0;     kEl[0, 3] = -ealA; kEl[0, 4] = 0;     kEl[0, 5] = 0;
-            kEl[1, 0] = 0;    kEl[1, 1] = ealB; kEl[1, 2] = -ealC; kEl[1, 3] = 0;     kEl[1, 4] = -ealB; kEl[1, 5] = -ealC;
-            kEl[2, 0] = 0;    kEl[2, 1] = -ealC;kEl[2, 2] = ealD;  kEl[2, 3] = 0;     kEl[2, 4] = ealC;  kEl[2, 5] = ealE;
+            kEl[1, 0] = 0;    kEl[1, 1] = eilB; kEl[1, 2] = -eilC; kEl[1, 3] = 0;     kEl[1, 4] = -eilB; kEl[1, 5] = -eilC;
+            kEl[2, 0] = 0;    kEl[2, 1] = -eilC;kEl[2, 2] = eilD;  kEl[2, 3] = 0;     kEl[2, 4] = eilC;  kEl[2, 5] = eilE;
             kEl[3, 0] = -ealA;kEl[3, 1] = 0;    kEl[3, 2] = 0;     kEl[3, 3] = ealA;  kEl[3, 4] = 0;     kEl[3, 5] = 0;
-            kEl[4, 0] = 0;    kEl[4, 1] = -ealB;kEl[4, 2] = ealC;  kEl[4, 3] = 0;     kEl[4, 4] = ealB;  kEl[4, 5] = ealC;
-            kEl[5, 0] = 0;    kEl[5, 1] = -ealC;kEl[5, 2] = ealD;  kEl[5, 3] = 0;     kEl[5, 4] = ealC;  kEl[5, 5] = ealE;
+            kEl[4, 0] = 0;    kEl[4, 1] = -eilB;kEl[4, 2] = eilC;  kEl[4, 3] = 0;     kEl[4, 4] = eilB;  kEl[4, 5] = eilC;
+            kEl[5, 0] = 0;    kEl[5, 1] = -eilC;kEl[5, 2] = eilD;  kEl[5, 3] = 0;     kEl[5, 4] = eilC;  kEl[5, 5] = eilE;
 
             //Creates T-matrix to adjust k element to global axis. 
             LA.Matrix<double> tM = LA.Matrix<double>.Build.Dense(nNode * 3, nNode * 3, 0);
