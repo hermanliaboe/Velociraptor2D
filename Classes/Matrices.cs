@@ -92,7 +92,7 @@ namespace FEM.Classes
             double h = beam.height;
             double w = beam.width;
             double A = h * w;
-            double I = (1 / 12) * Math.Pow(h, 3) * w;
+            double I = (1.0 / 12.0) * Math.Pow(h, 3.0) * w;
 
             double ealA = (E * A) / l;
             double eilB = 12.0 * (E * I) / Math.Pow(l, 3.0);
