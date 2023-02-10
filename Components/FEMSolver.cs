@@ -52,7 +52,7 @@ namespace FEM.Components
             pManager.AddGenericParameter("globalK","","",GH_ParamAccess.item);
             pManager.AddGenericParameter("globalKsup", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("forceVec", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("displacements", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("displacements", "", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -76,8 +76,8 @@ namespace FEM.Components
             int dof = model.nodeList.Count*3;
           
             double E = 210000.0; //MPa
-            double A = 10000.0; //mm^2
-            double I = (1.0/12.0)*Math.Pow(100.0,4.0);
+            double A = 100.0; //mm^2
+            double I = (1.0/12.0)*Math.Pow(10.0,4.0);
 
             Matrices matrices = new Matrices();
 
@@ -87,19 +87,29 @@ namespace FEM.Components
            
             LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
 
+            List<string> dispList = new List<string>();
+
+            for (int i = 0; i < dof/3; i++)
+            {
+                var nodeDisp = "{" + displacements[i, 0] + ", " + displacements[i + 1, 0] + ", " + displacements[i + 2, 0] + "}";
+                dispList.Add(nodeDisp);
+                //.ToString("0.000000")
+            }
+
+
             //DA.SetData(0, globalK);
             //DA.SetData(1, globalKsup);
             DA.SetData(0, globalKsup[9,9]);
             DA.SetData(1, globalK);
             DA.SetData(2, globalKsup);
             DA.SetData(3, forceVec);
-            DA.SetData(4, displacements);
+            DA.SetDataList(4, dispList);
 
 
         }
         LA.Matrix<double> BuildForceVector(List<Load> loads, int dof)
         {
-            LA.Matrix<double> forceVec = LA.Matrix<double>.Build.Dense(dof, 1);
+            LA.Matrix<double> forceVec = LA.Matrix<double>.Build.Dense(dof, 1,0);
 
             foreach (Load load in loads)
             {
@@ -107,8 +117,6 @@ namespace FEM.Components
                 forceVec[load.nodeID*3 + 1, 0] = load.vector.Z;
                 // forceVec[load.nodeID*3 + 2, 0] = load.vector.r; moment
             }
-
-
 
             return forceVec;
         }
