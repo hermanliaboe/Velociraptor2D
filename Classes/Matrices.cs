@@ -32,6 +32,24 @@ namespace FEM.Classes
         {
         }
 
+        // Creates force vector ###################################################################################
+        public LA.Matrix<double> BuildForceVector(List<Load> loads, int dof)
+        {
+            LA.Matrix<double> forceVec = LA.Matrix<double>.Build.Dense(dof, 1, 0);
+
+            foreach (Load load in loads)
+            {
+                forceVec[load.nodeID * 3, 0] = load.fVector.X;
+                forceVec[load.nodeID * 3 + 1, 0] = load.fVector.Z;
+                forceVec[load.nodeID * 3 + 2, 0] = load.mVector.Y;
+            }
+
+            return forceVec;
+        }
+
+
+
+        // Created global K-matrix ###################################################################################
         public LA.Matrix<double> BuildGlobalK(int dof, List<BeamElement> elements)
         {
             LA.Matrix<double> globalK = LA.Matrix<double>.Build.Dense(dof, dof, 0);
@@ -68,7 +86,10 @@ namespace FEM.Classes
             return globalK;
         }
 
-        //Fuction to create element k. Locally first, then adjusted to global axis with T-matrix.  
+
+
+
+        // Creates k matrix element level #########################################################################
         public LA.Matrix<double> GetKel(BeamElement beam)
         {
             int nNode = 2;  //how many nodes per element
@@ -109,7 +130,8 @@ namespace FEM.Classes
             kEl[4, 0] = 0;    kEl[4, 1] = -eilB;kEl[4, 2] = eilC;  kEl[4, 3] = 0;     kEl[4, 4] = eilB;  kEl[4, 5] = eilC;
             kEl[5, 0] = 0;    kEl[5, 1] = -eilC;kEl[5, 2] = eilD;  kEl[5, 3] = 0;     kEl[5, 4] = eilC;  kEl[5, 5] = eilE;
 
-            //Creates T-matrix to adjust k element to global axis. 
+
+            //Creates T-matrix to adjust element to global axis
             LA.Matrix<double> tM = LA.Matrix<double>.Build.Dense(nNode * 3, nNode * 3, 0);
 
             double c = (x2 - x1) / l;
@@ -127,7 +149,8 @@ namespace FEM.Classes
             LA.Matrix<double> kElG = kElGtemp.Multiply(tM);
             return kElG;
         }
-        
+
+        //Creates global K with supports ############################################################################
         public LA.Matrix<double> BuildGlobalKsup(int dof, LA.Matrix<double> globalK, List<Support> supports, List<Node> nodes)
         {
             LA.Matrix<double> globalKsup = globalK.Clone();
@@ -168,7 +191,9 @@ namespace FEM.Classes
             }
             return globalKsup;
         }
-        public LA.Matrix<double> BuildMassMatrix(int dof, List<BeamElement> beams)
+
+        //Creates global lumped mass matrix #############################################################################
+        public LA.Matrix<double> BuildLumpedMassMatrix(int dof, List<BeamElement> beams)
         {
             LA.Matrix<double> massMatrix = LA.Matrix<double>.Build.Dense(dof, dof, 0);
             foreach (BeamElement beam in beams)
@@ -179,18 +204,20 @@ namespace FEM.Classes
                 double mTot = beam.height * beam.width * selfWeight;
                 double m1 = mTot* (l/2);
 
-                massMatrix[beam.startNode.globalID*nDof, beam.startNode.globalID * nDof] = massMatrix[beam.startNode.globalID * nDof, beam.startNode.globalID * nDof] + m1;
-                massMatrix[beam.startNode.globalID* nDof + 1, beam.startNode.globalID * nDof + 1] = massMatrix[beam.startNode.globalID * nDof + 1, beam.startNode.globalID * nDof + 1] + m1;
-                massMatrix[beam.startNode.globalID* nDof + 2, beam.startNode.globalID * nDof + 2] = massMatrix[beam.startNode.globalID * nDof + 2, beam.startNode.globalID * nDof + 2] + m1;
+                massMatrix[beam.startNode.globalID*nDof, beam.startNode.globalID * nDof] +=  m1;
+                massMatrix[beam.startNode.globalID* nDof + 1, beam.startNode.globalID * nDof + 1] +=  m1;
+                massMatrix[beam.startNode.globalID* nDof + 2, beam.startNode.globalID * nDof + 2] +=  m1;
 
 
-                massMatrix[beam.endNode.globalID * nDof,  beam.endNode.globalID * nDof] = massMatrix[beam.endNode.globalID * nDof, beam.endNode.globalID * nDof] + m1;
-                massMatrix[beam.endNode.globalID * nDof + 1, beam.endNode.globalID * nDof + 1] = massMatrix[beam.endNode.globalID * nDof + 1, beam.endNode.globalID * nDof + 1] + m1;
-                massMatrix[beam.endNode.globalID * nDof + 2, beam.endNode.globalID * nDof + 2] = massMatrix[beam.endNode.globalID * nDof + 2, beam.endNode.globalID * nDof + 2] + m1;
+                massMatrix[beam.endNode.globalID * nDof,  beam.endNode.globalID * nDof] += m1;
+                massMatrix[beam.endNode.globalID * nDof + 1, beam.endNode.globalID * nDof + 1] +=  m1;
+                massMatrix[beam.endNode.globalID * nDof + 2, beam.endNode.globalID * nDof + 2] += m1;
                 
             }
             return massMatrix;
         }
+
+       
 
 
     }
