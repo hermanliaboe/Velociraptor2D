@@ -16,7 +16,7 @@ using Grasshopper.Kernel.Types;
 
 namespace FEM.Components
 {
-    public class FEMSolver : GH_Component
+    public class SolverStatic : GH_Component
     {
         /// <summary>
         /// Each implementation of GH_Component must provide a public 
@@ -25,7 +25,7 @@ namespace FEM.Components
         /// Subcategory the panel. If you use non-existing tab or panel names, 
         /// new tabs/panels will automatically be created.
         /// </summary>
-        public FEMSolver()
+        public SolverStatic()
           : base("Static FEMSolver", "femmern",
             "FEM solver with Newmark method",
             "Masters", "FEM")
@@ -85,10 +85,9 @@ namespace FEM.Components
 
             LA.Matrix<double> globalK = matrices.BuildGlobalK(dof, elements);
             LA.Matrix<double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
-            LA.Matrix<double> forceVec = BuildForceVector(loads, dof);
+            LA.Matrix<double> forceVec = matrices.BuildForceVector(loads, dof);
 
 
-            LA.Matrix<double> massMatrix = matrices.BuildMassMatrix(dof, elements);
 
             LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
 
@@ -121,24 +120,10 @@ namespace FEM.Components
             DA.SetData(3, forceVec);
             DA.SetDataList(4, dispList);
             DA.SetData(5, rhinoMatrix);
-            DA.SetData(6, massMatrix);
+            
         }
 
-        LA.Matrix<double> BuildForceVector(List<Load> loads, int dof)
-        {
-            LA.Matrix<double> forceVec = LA.Matrix<double>.Build.Dense(dof, 1, 0);
-
-            foreach (Load load in loads)
-            {
-                forceVec[load.nodeID * 3, 0] = load.fVector.X;
-                forceVec[load.nodeID * 3 + 1, 0] = load.fVector.Z;
-                forceVec[load.nodeID*3 + 2, 0] = load.mVector.Y; 
-            }
-
-            return forceVec;
-        }
-
-
+ 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
