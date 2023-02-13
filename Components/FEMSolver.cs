@@ -56,6 +56,7 @@ namespace FEM.Components
             pManager.AddGenericParameter("displacements", "", "", GH_ParamAccess.list);
             //pManager.AddNumberParameter("list of rows in reduced stiffness matrix","","",GH_ParamAccess.list);
             pManager.AddMatrixParameter("list of rows in reduced stiffness matrix", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("mass matrix!", "massMat", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -73,6 +74,7 @@ namespace FEM.Components
             List<BeamElement> elements = model.beamList;
             List<Support> supports = model.supportList;
             List<Node> nodes = model.nodeList;
+       
 
 
 
@@ -84,7 +86,10 @@ namespace FEM.Components
             LA.Matrix<double> globalK = matrices.BuildGlobalK(dof, elements);
             LA.Matrix<double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
             LA.Matrix<double> forceVec = BuildForceVector(loads, dof);
-           
+
+
+            LA.Matrix<double> massMatrix = matrices.BuildMassMatrix(dof, elements);
+
             LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
 
             List<string> dispList = new List<string>();
@@ -116,6 +121,7 @@ namespace FEM.Components
             DA.SetData(3, forceVec);
             DA.SetDataList(4, dispList);
             DA.SetData(5, rhinoMatrix);
+            DA.SetData(6, massMatrix);
         }
 
         LA.Matrix<double> BuildForceVector(List<Load> loads, int dof)

@@ -168,7 +168,30 @@ namespace FEM.Classes
             }
             return globalKsup;
         }
-        
+        public LA.Matrix<double> BuildMassMatrix(int dof, List<BeamElement> beams)
+        {
+            LA.Matrix<double> massMatrix = LA.Matrix<double>.Build.Dense(dof, dof, 0);
+            foreach (BeamElement beam in beams)
+            {
+                int nDof = 3;
+                double selfWeight = beam.selfWeight;
+                double l = beam.length;
+                double mTot = beam.height * beam.width * selfWeight;
+                double m1 = mTot* (l/2);
+
+                massMatrix[beam.startNode.globalID*nDof, beam.startNode.globalID * nDof] = massMatrix[beam.startNode.globalID * nDof, beam.startNode.globalID * nDof] + m1;
+                massMatrix[beam.startNode.globalID* nDof + 1, beam.startNode.globalID * nDof + 1] = massMatrix[beam.startNode.globalID * nDof + 1, beam.startNode.globalID * nDof + 1] + m1;
+                massMatrix[beam.startNode.globalID* nDof + 2, beam.startNode.globalID * nDof + 2] = massMatrix[beam.startNode.globalID * nDof + 2, beam.startNode.globalID * nDof + 2] + m1;
+
+
+                massMatrix[beam.endNode.globalID * nDof,  beam.endNode.globalID * nDof] = massMatrix[beam.endNode.globalID * nDof, beam.endNode.globalID * nDof] + m1;
+                massMatrix[beam.endNode.globalID * nDof + 1, beam.endNode.globalID * nDof + 1] = massMatrix[beam.endNode.globalID * nDof + 1, beam.endNode.globalID * nDof + 1] + m1;
+                massMatrix[beam.endNode.globalID * nDof + 2, beam.endNode.globalID * nDof + 2] = massMatrix[beam.endNode.globalID * nDof + 2, beam.endNode.globalID * nDof + 2] + m1;
+                
+            }
+            return massMatrix;
+        }
+
 
     }
 }
