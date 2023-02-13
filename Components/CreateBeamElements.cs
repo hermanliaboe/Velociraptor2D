@@ -86,7 +86,15 @@ namespace FEM.Components
                 element.height = cs.height;
                 element.width = cs.width;
                 element.youngsMod = cs.youngsMod;
+                element.selfWeight = cs.selfWeight;
+                double l = 0;
+                
+                
+
+
+
                 beams.Add(element);
+
             }
 
             DA.SetDataList(0, beams);
