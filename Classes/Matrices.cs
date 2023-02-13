@@ -15,15 +15,15 @@ namespace FEM.Classes
 {
     internal class Matrices
     {
-        public LA.Matrix<double> globalK;
-        public LA.Matrix<double> globalM;
-        public LA.Matrix<double> globalC;
-        public LA.Matrix<double> globalN;
-        public LA.Matrix<double> globalF;
+        public LA.Matrix<double> GlobalK;
+        public LA.Matrix<double> GlobalM;
+        public LA.Matrix<double> GlobalC;
+        public LA.Matrix<double> GlobalN;
+        public LA.Matrix<double> GlobalF;
 
         public Matrices(int dof, List<BeamElement> elements)
         {
-            this.globalK = BuildGlobalK(dof, elements);
+            this.GlobalK = BuildGlobalK(dof, elements);
 
 
         }
@@ -39,9 +39,9 @@ namespace FEM.Classes
 
             foreach (Load load in loads)
             {
-                forceVec[load.nodeID * 3, 0] = load.fVector.X;
-                forceVec[load.nodeID * 3 + 1, 0] = load.fVector.Z;
-                forceVec[load.nodeID * 3 + 2, 0] = load.mVector.Y;
+                forceVec[load.NodeID * 3, 0] = load.ForceVector.X;
+                forceVec[load.NodeID * 3 + 1, 0] = load.ForceVector.Z;
+                forceVec[load.NodeID * 3 + 2, 0] = load.MomentVector.Y;
             }
 
             return forceVec;
@@ -61,8 +61,8 @@ namespace FEM.Classes
                 LA.Matrix<double> ke = GetKel(element);
 
                 //Get nodeID and *3 to get globalK placement
-                int idS = element.startNode.globalID * nDof;
-                int idE = element.endNode.globalID * nDof;
+                int idS = element.StartNode.GlobalID * nDof;
+                int idE = element.EndNode.GlobalID * nDof;
 
                 //divide the element matrix into four matrices
                 LA.Matrix<double> ke11 = ke.SubMatrix(0, nDof, 0, nDof);
@@ -92,26 +92,26 @@ namespace FEM.Classes
         // Creates k matrix element level #########################################################################
         public LA.Matrix<double> GetKel(BeamElement beam)
         {
-            int nNode = 2;  //how many nodes per element
+            int dof = 6;  //how many dof per element
 
 
             //gets length of element
-            Node startNode = beam.startNode;
-            double z1 = startNode.point.Z;
-            double x1 = startNode.point.X;
+            Node startNode = beam.StartNode;
+            double z1 = startNode.Point.Z;
+            double x1 = startNode.Point.X;
 
-            Node endNode = beam.endNode;
-            double z2 = endNode.point.Z;
-            double x2 = endNode.point.X;
+            Node endNode = beam.EndNode;
+            double z2 = endNode.Point.Z;
+            double x2 = endNode.Point.X;
 
             double l = (Math.Sqrt(Math.Pow(z2 - z1, 2.0) + Math.Pow(x2 - x1, 2.0)));
 
             //Define standard k for two node beam element. 
-            LA.Matrix<double> kEl = LA.Matrix<double>.Build.Dense(nNode * 3, nNode * 3, 0);
+            LA.Matrix<double> kEl = LA.Matrix<double>.Build.Dense(dof, dof, 0);
 
-            double E = beam.youngsMod;
-            double h = beam.height;
-            double w = beam.width;
+            double E = beam.YoungsMod;
+            double h = beam.Height;
+            double w = beam.Width;
             double A = h * w;
             double I = (1.0 / 12.0) * Math.Pow(h, 3.0) * w;
 
@@ -132,22 +132,29 @@ namespace FEM.Classes
 
 
             //Creates T-matrix to adjust element to global axis
-            LA.Matrix<double> tM = LA.Matrix<double>.Build.Dense(nNode * 3, nNode * 3, 0);
+            LA.Matrix<double> kT = TransformMatrix(kEl, x1, x2, z1, z2, l);
+            return kT;
+        }
+
+        public LA.Matrix<double> TransformMatrix(LA.Matrix<double> matrix, double x1, double x2, double z1, double z2, double l)
+        {
+            LA.Matrix<double> t = LA.Matrix<double>.Build.Dense(matrix.RowCount, matrix.ColumnCount, 0);
 
             double c = (x2 - x1) / l;
             double s = (z2 - z1) / l;
 
-            tM[0, 0] = c;  tM[0, 1] = s; tM[0, 2] = 0; tM[0, 3] = 0; tM[0, 4] = 0; tM[0, 5] = 0;
-            tM[1, 0] = -s; tM[1, 1] = c; tM[1, 2] = 0; tM[1, 3] = 0; tM[1, 4] = 0; tM[1, 5] = 0;
-            tM[2, 0] = 0;  tM[2, 1] = 0; tM[2, 2] = 1; tM[2, 3] = 0; tM[2, 4] = 0; tM[2, 5] = 0;
-            tM[3, 0] = 0;  tM[3, 1] = 0; tM[3, 2] = 0; tM[3, 3] = c; tM[3, 4] = s; tM[3, 5] = 0;
-            tM[4, 0] = 0;  tM[4, 1] = 0; tM[4, 2] = 0; tM[4, 3] = -s;tM[4, 4] = c; tM[4, 5] = 0;
-            tM[5, 0] = 0;  tM[5, 1] = 0; tM[5, 2] = 0; tM[5, 3] = 0; tM[5, 4] = 0; tM[5, 5] = 1;
+            t[0, 0] = c; t[0, 1] = s; t[0, 2] = 0; t[0, 3] = 0; t[0, 4] = 0; t[0, 5] = 0;
+            t[1, 0] = -s; t[1, 1] = c; t[1, 2] = 0; t[1, 3] = 0; t[1, 4] = 0; t[1, 5] = 0;
+            t[2, 0] = 0; t[2, 1] = 0; t[2, 2] = 1; t[2, 3] = 0; t[2, 4] = 0; t[2, 5] = 0;
+            t[3, 0] = 0; t[3, 1] = 0; t[3, 2] = 0; t[3, 3] = c; t[3, 4] = s; t[3, 5] = 0;
+            t[4, 0] = 0; t[4, 1] = 0; t[4, 2] = 0; t[4, 3] = -s; t[4, 4] = c; t[4, 5] = 0;
+            t[5, 0] = 0; t[5, 1] = 0; t[5, 2] = 0; t[5, 3] = 0; t[5, 4] = 0; t[5, 5] = 1;
 
-            LA.Matrix<double> tMT = tM.Transpose();
-            LA.Matrix<double> kElGtemp = tMT.Multiply(kEl);
-            LA.Matrix<double> kElG = kElGtemp.Multiply(tM);
-            return kElG;
+            LA.Matrix<double> tT = t.Transpose();
+            LA.Matrix<double> tm = tT.Multiply(matrix);
+            LA.Matrix<double> tmt = tm.Multiply(t);
+            return tmt;
+
         }
 
         //Creates global K with supports ############################################################################
@@ -161,26 +168,26 @@ namespace FEM.Classes
                 foreach (Node node in nodes)
                 {
                     
-                    if (support.point == node.point)
+                    if (support.Point == node.Point)
                     {
                         LA.Matrix<double> col = LA.Matrix<double>.Build.Dense(dof, 1, 0);
                         LA.Matrix<double> row = LA.Matrix<double>.Build.Dense(1, dof, 0);
-                        int idN = node.globalID;
+                        int idN = node.GlobalID;
 
                         
-                        if (support.tx == true)
+                        if (support.Tx == true)
                         {
                             globalKsup.SetSubMatrix(idN*3, 0, row);
                             globalKsup.SetSubMatrix(0, idN*3, col);
                             globalKsup[idN*3, idN*3] = 1;
                         }
-                        if (support.tz == true)
+                        if (support.Ty == true)
                         {
                             globalKsup.SetSubMatrix(idN * 3 + 1, 0, row);
                             globalKsup.SetSubMatrix(0, idN * 3 + 1 , col);
                             globalKsup[idN * 3 + 1, idN * 3 + 1] = 1;
                         }
-                        if (support.ry == true)
+                        if (support.Ry == true)
                         {
                             globalKsup.SetSubMatrix(idN*3 +2, 0, row);
                             globalKsup.SetSubMatrix(0, idN*3 +2, col);
@@ -192,32 +199,118 @@ namespace FEM.Classes
             return globalKsup;
         }
 
-        //Creates global lumped mass matrix #############################################################################
-        public LA.Matrix<double> BuildLumpedMassMatrix(int dof, List<BeamElement> beams)
+        public LA.Matrix<double> GetMel(BeamElement beam, bool lumped)
         {
-            LA.Matrix<double> massMatrix = LA.Matrix<double>.Build.Dense(dof, dof, 0);
-            foreach (BeamElement beam in beams)
+            int dof = 6;  // dof per element
+
+            //gets length of element
+            Node startNode = beam.StartNode;
+            double z1 = startNode.Point.Z;
+            double x1 = startNode.Point.X;
+
+            Node endNode = beam.EndNode;
+            double z2 = endNode.Point.Z;
+            double x2 = endNode.Point.X;
+            double l = beam.Length;
+            double mTot = beam.Height * beam.Width * beam.Rho * beam.Length;
+
+            // mass element matrix of right size filled with zeros
+            LA.Matrix<double> mEl = LA.Matrix<double>.Build.Dense(dof, dof, 0);
+
+            mEl[0, 0] = mEl[3,3] = 140;
+            mEl[0, 3] = mEl[3, 0] = 70;
+            mEl[1, 1] = mEl[4, 4] = 156;
+            mEl[1, 2] = mEl[2, 1] = 22 * l;
+            mEl[1, 4] = mEl[4, 1] = 54;
+            mEl[1, 5] = mEl[5, 5] = -13 * l;
+            mEl[2, 2] = mEl[5, 5] = 4*Math.Pow(l, 2);
+            mEl[2, 4] = mEl[4, 2] = 13 * l;
+            mEl[2, 5] = mEl[5, 2] = -3 * Math.Pow(l, 2);
+            mEl[4, 5] = mEl[5, 5] = -22 * l;
+
+            mEl *= (mTot / 420);
+
+            if (lumped) 
+                // if bool lumped is true, sets mEl to lumped mass matrix by
+                // summing up the rows of the matrix and placing them on the diagonal
             {
-                int nDof = 3;
-                double selfWeight = beam.selfWeight;
-                double l = beam.length;
-                double mTot = beam.height * beam.width * selfWeight;
-                double m1 = mTot* (l/2);
-
-                massMatrix[beam.startNode.globalID*nDof, beam.startNode.globalID * nDof] +=  m1;
-                massMatrix[beam.startNode.globalID* nDof + 1, beam.startNode.globalID * nDof + 1] +=  m1;
-                massMatrix[beam.startNode.globalID* nDof + 2, beam.startNode.globalID * nDof + 2] +=  m1;
-
-
-                massMatrix[beam.endNode.globalID * nDof,  beam.endNode.globalID * nDof] += m1;
-                massMatrix[beam.endNode.globalID * nDof + 1, beam.endNode.globalID * nDof + 1] +=  m1;
-                massMatrix[beam.endNode.globalID * nDof + 2, beam.endNode.globalID * nDof + 2] += m1;
-                
+                LA.Matrix<double> mElLumped = mEl.Clone();
+                LA.Vector<double> rowSums = mEl.RowSums();
+                for (int i = 0; i < dof; i++)
+                {
+                    mElLumped[i, i] = rowSums[i];
+                }
+                mEl = mElLumped;
             }
-            return massMatrix;
+
+            //Transform to global coordinates
+            LA.Matrix<double> mT = TransformMatrix(mEl, x1, x2, z1, z2, l);
+
+            return mT;
+        }
+        public LA.Matrix<double> BuildGlobalM(int dof, List<BeamElement> elements, bool lumped)
+        {
+            // the only difference between this function and BuildGlobalK is that
+            // BuildGlobalM accounts for lumped mass. Consider making this one function later
+            LA.Matrix<double> globalM = LA.Matrix<double>.Build.Dense(dof, dof, 0);
+
+            foreach (var element in elements)
+            {
+                int nDof = 3; //dof per node
+                //Retrive element k from function
+                LA.Matrix<double> me = GetMel(element, lumped);
+
+                //Get nodeID and *3 to get globalK placement
+                int idS = element.StartNode.GlobalID * nDof;
+                int idE = element.EndNode.GlobalID * nDof;
+
+                //divide the element matrix into four matrices
+                LA.Matrix<double> me11 = me.SubMatrix(0, nDof, 0, nDof);
+                LA.Matrix<double> me12 = me.SubMatrix(0, nDof, nDof, nDof);
+                LA.Matrix<double> me21 = me.SubMatrix(nDof, nDof, 0, nDof);
+                LA.Matrix<double> ke22 = me.SubMatrix(nDof, nDof, nDof, nDof);
+
+                //Puts the four matrices into the correct place in globalK (yes, correct buddy)
+                for (int r = 0; r < nDof; r++)
+                {
+                    for (int c = 0; c < nDof; c++)
+                    {
+                        globalM[idS + r, idS + c] = globalM[idS + r, idS + c] + me11[r, c];
+                        globalM[idS + r, idE + c] = globalM[idS + r, idE + c] + me12[r, c];
+                        globalM[idE + r, idS + c] = globalM[idE + r, idS + c] + me21[r, c];
+                        globalM[idE + r, idE + c] = globalM[idE + r, idE + c] + ke22[r, c];
+                    }
+                }
+            }
+            
+            return globalM;
         }
 
-       
+        //Creates global lumped mass matrix #############################################################################
+        //public LA.Matrix<double> BuildMassMatrix(int dof, List<BeamElement> beams)
+        //{
+        //    LA.Matrix<double> massMatrix = LA.Matrix<double>.Build.Dense(dof, dof, 0);
+        //    foreach (BeamElement beam in beams)
+        //    {
+        //        int nDof = 3;
+        //        double l = beam.length;
+        //        double mTot = beam.height * beam.width * beam.rho * beam.length;
+        //        double m1 = mTot * (l / 2);
+
+        //        massMatrix[beam.startNode.globalID * nDof, beam.startNode.globalID * nDof] += m1;
+        //        massMatrix[beam.startNode.globalID * nDof + 1, beam.startNode.globalID * nDof + 1] += m1;
+        //        massMatrix[beam.startNode.globalID * nDof + 2, beam.startNode.globalID * nDof + 2] += m1;
+
+
+        //        massMatrix[beam.endNode.globalID * nDof, beam.endNode.globalID * nDof] += m1;
+        //        massMatrix[beam.endNode.globalID * nDof + 1, beam.endNode.globalID * nDof + 1] += m1;
+        //        massMatrix[beam.endNode.globalID * nDof + 2, beam.endNode.globalID * nDof + 2] += m1;
+
+        //    }
+        //    return massMatrix;
+        //}
+
+
 
 
     }

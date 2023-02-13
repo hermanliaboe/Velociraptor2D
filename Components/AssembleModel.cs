@@ -66,20 +66,20 @@ namespace FEM.Components
             {
                 foreach (BeamElement b in beams) 
                 {
-                    Node startNode = b.startNode;
-                    if (startNode.point == sup.point)
+                    Node startNode = b.StartNode;
+                    if (startNode.Point == sup.Point)
                     {
-                        startNode.zBC = sup.tz;
-                        startNode.xBC = sup.tx;
-                        startNode.ry = sup.ry;
+                        startNode.ZBC = sup.Ty;
+                        startNode.XBC = sup.Tx;
+                        startNode.RyBC = sup.Ry;
                     }
 
-                    Node endNode = b.endNode;
-                    if (endNode.point == sup.point)
+                    Node endNode = b.EndNode;
+                    if (endNode.Point == sup.Point)
                     {
-                        endNode.zBC = sup.tz;
-                        endNode.xBC = sup.tx;
-                        endNode.ry = sup.ry;
+                        endNode.ZBC = sup.Ty;
+                        endNode.XBC = sup.Tx;
+                        endNode.RyBC = sup.Ry;
                     }
                 }                    
              }
@@ -88,9 +88,9 @@ namespace FEM.Components
             {
                 foreach (Node node in nodes)
                 {
-                    if (node.point == load.point)
+                    if (node.Point == load.Point)
                     {
-                        load.nodeID = node.globalID;
+                        load.NodeID = node.GlobalID;
                     }
                 }
             }

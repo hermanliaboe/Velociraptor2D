@@ -61,40 +61,35 @@ namespace FEM.Components
                 bidc++;
                 if (existingNodes.ContainsKey(stPt))
                 {
-                    element.startNode = existingNodes[stPt];
+                    element.StartNode = existingNodes[stPt];
                 }
                 else
                 {
                     Node sNode = new Node(0, idc, stPt);
                     existingNodes.Add(stPt, sNode);
-                    element.startNode = sNode;
+                    element.StartNode = sNode;
                     nodes.Add(sNode);
                     idc++;
                 }
                 if (existingNodes.ContainsKey(ePt))
                 {
-                    element.endNode = existingNodes[ePt];
+                    element.EndNode = existingNodes[ePt];
                 }
                 else
                 {
                     Node eNode = new Node(0, idc, ePt);
                     existingNodes.Add(ePt, eNode);
-                    element.endNode = eNode;
+                    element.EndNode = eNode;
                     nodes.Add(eNode);
                     idc++;
                 }
-                element.height = cs.height;
-                element.width = cs.width;
-                element.youngsMod = cs.youngsMod;
-                element.selfWeight = cs.selfWeight;
+                element.Height = cs.Height;
+                element.Width = cs.Width;
+                element.YoungsMod = cs.YoungsMod;
+                element.Rho = cs.Rho;
                 double l = 0;
-                
-                
-
-
 
                 beams.Add(element);
-
             }
 
             DA.SetDataList(0, beams);

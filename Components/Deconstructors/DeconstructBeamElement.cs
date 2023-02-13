@@ -49,13 +49,13 @@ namespace FEM.Components.Deconstructors
             BeamElement beam = new BeamElement();
             DA.GetData(0, ref beam);
 
-            DA.SetData(0, beam.startNode);
-            DA.SetData(1, beam.endNode);
-            DA.SetData(2, beam.line);
-            DA.SetData(3, beam.id);
-            DA.SetData(4, beam.height);
-            DA.SetData(5, beam.width);
-            DA.SetData(6, beam.youngsMod);
+            DA.SetData(0, beam.StartNode);
+            DA.SetData(1, beam.EndNode);
+            DA.SetData(2, beam.Line);
+            DA.SetData(3, beam.Id);
+            DA.SetData(4, beam.Height);
+            DA.SetData(5, beam.Width);
+            DA.SetData(6, beam.YoungsMod);
         }
 
         /// <summary>

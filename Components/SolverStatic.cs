@@ -70,15 +70,15 @@ namespace FEM.Components
             DA.GetData(0, ref model);
             
 
-            List<Load> loads = model.loadList;
-            List<BeamElement> elements = model.beamList;
-            List<Support> supports = model.supportList;
-            List<Node> nodes = model.nodeList;
+            List<Load> loads = model.LoadList;
+            List<BeamElement> elements = model.BeamList;
+            List<Support> supports = model.SupportList;
+            List<Node> nodes = model.NodeList;
        
 
 
 
-            int dof = model.nodeList.Count*3;
+            int dof = model.NodeList.Count*3;
           
          
             Matrices matrices = new Matrices();

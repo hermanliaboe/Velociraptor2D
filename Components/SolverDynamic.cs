@@ -62,19 +62,27 @@ namespace FEM.Components
             Classes.Assembly model = new Classes.Assembly();
             DA.GetData(0, ref model);
 
-            List<Load> loads = model.loadList;
-            List<BeamElement> elements = model.beamList;
-            List<Support> supports = model.supportList;
-            List<Node> nodes = model.nodeList;
-            int dof = model.nodeList.Count * 3;
+            List<Load> loads = model.LoadList;
+            List<BeamElement> elements = model.BeamList;
+            List<Support> supports = model.SupportList;
+            List<Node> nodes = model.NodeList;
+            int dof = nodes.Count * 3;
 
 
             Matrices matrices = new Matrices();
-            LA.Matrix<double> massMatrix = matrices.BuildLumpedMassMatrix(dof, elements);
+            LA.Matrix<double> M = matrices.BuildGlobalM(dof, elements, true);
+            LA.Matrix<double> K = matrices.BuildGlobalK(dof, elements);
+            LA.Matrix<double> C = LA.Matrix<double>.Build.Dense(dof, dof);
+            
 
-            DA.SetData(6, massMatrix);
+            DA.SetData(6, M);
 
         }
+        void Newmark(double beta, double gamma, double dt, LA.Matrix<double> M, LA.Matrix<double> K, LA.Matrix<double> C)
+        {
+            // solve some shit
+        }
+
 
         /// <summary>
         /// Provides an Icon for the component.

@@ -48,12 +48,12 @@ namespace FEM.Components.Deconstructors
             Node node = new Node();
             DA.GetData(0, ref node);
 
-            DA.SetData(0, node.point);
-            DA.SetData(1, node.localID);
-            DA.SetData(2, node.globalID);
-            DA.SetData(3, node.xBC);
-            DA.SetData(4, node.zBC);
-            DA.SetData(5, node.ry);
+            DA.SetData(0, node.Point);
+            DA.SetData(1, node.LocalID);
+            DA.SetData(2, node.GlobalID);
+            DA.SetData(3, node.XBC);
+            DA.SetData(4, node.ZBC);
+            DA.SetData(5, node.RyBC);
         }
 
         /// <summary>

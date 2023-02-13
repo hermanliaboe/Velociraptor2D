@@ -9,19 +9,19 @@ namespace FEM.Classes
 {
     internal class Support
     {
-        public Point3d point;
-        public Boolean tx;
-        public Boolean tz;
-        public Boolean ry;
+        public Point3d Point;
+        public bool Tx;
+        public bool Ty;
+        public bool Ry;
         
         public Support() { }
 
-        public Support(Point3d point, Boolean tx, Boolean tz, Boolean ry) 
+        public Support(Point3d point, bool tx, bool tz, bool ry) 
         {
-            this.point = point;
-            this.tx = tx;
-            this.tz = tz;
-            this.ry = ry;
+            this.Point = point;
+            this.Tx = tx;
+            this.Ty = tz;
+            this.Ry = ry;
             
 
         }

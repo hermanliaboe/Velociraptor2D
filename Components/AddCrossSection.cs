@@ -26,7 +26,7 @@ namespace FEM.Components
             pManager.AddNumberParameter("height","h","",GH_ParamAccess.item);
             pManager.AddNumberParameter("width", "w", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("YoungsModulus", "E", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Self Weight", "gamma", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Density", "rho", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -46,12 +46,12 @@ namespace FEM.Components
             double height = 0.0;
             double width = 0.0;
             double youngsMod = 0.0;
-            double selfWeight = 0.0;
+            double rho = 0.0;
             DA.GetData(0, ref height);
             DA.GetData(1, ref width);
             DA.GetData(2, ref youngsMod);
-            DA.GetData(3, ref selfWeight);
-            CrossSection cs = new CrossSection(height, width, youngsMod, selfWeight);
+            DA.GetData(3, ref rho);
+            CrossSection cs = new CrossSection(height, width, youngsMod, rho);
             DA.SetData(0, cs);
         }
 

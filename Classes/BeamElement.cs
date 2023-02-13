@@ -9,28 +9,28 @@ namespace FEM.Classes
 {
     internal class BeamElement
     {
-        public string type;
-        public int id;
-        public List<Node> nodes;
-        public Node startNode;
-        public Node endNode;
-        public Line line;
-        public double length;
-        public double height;
-        public double width;
-        public double youngsMod;
-        public double selfWeight;
+        public string Type;
+        public int Id;
+        public List<Node> Nodes;
+        public Node StartNode;
+        public Node EndNode;
+        public Line Line;
+        public double Length;
+        public double Height;
+        public double Width;
+        public double YoungsMod;
+        public double Rho;
 
         public BeamElement() { }
 
         public BeamElement(int id, Line line)
         {
-            this.id = id;
-            this.line = line;
-            this.length= getElementLength(line);
+            this.Id = id;
+            this.Line = line;
+            this.Length= GetElementLength(line);
         }
 
-        public double getElementLength(Line line)
+        public double GetElementLength(Line line)
         {
             //gets length of element
             Point3d startNode = line.To;

@@ -48,10 +48,10 @@ namespace FEM.Components.Deconstructors
 
             DA.GetData(0, ref assembly);
 
-            DA.SetDataList(0, assembly.beamList);
-            DA.SetDataList(1, assembly.supportList);
-            DA.SetDataList(2, assembly.loadList);
-            DA.SetDataList(3, assembly.nodeList);
+            DA.SetDataList(0, assembly.BeamList);
+            DA.SetDataList(1, assembly.SupportList);
+            DA.SetDataList(2, assembly.LoadList);
+            DA.SetDataList(3, assembly.NodeList);
         }
 
         /// <summary>

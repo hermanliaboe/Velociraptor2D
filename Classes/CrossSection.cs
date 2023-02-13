@@ -8,19 +8,19 @@ namespace FEM.Classes
 {
     internal class CrossSection
     {
-        public double height;
-        public double width;
-        public double youngsMod;
-        public double selfWeight;
+        public double Height;
+        public double Width;
+        public double YoungsMod;
+        public double Rho;
 
         public CrossSection() { }
 
-        public CrossSection(double height, double width, double youngsMod, double selfWeight)
+        public CrossSection(double height, double width, double youngsMod, double rho)
         {
-            this.height = height;
-            this.width = width;
-            this.youngsMod = youngsMod;
-            this.selfWeight = selfWeight;
+            this.Height = height;
+            this.Width = width;
+            this.YoungsMod = youngsMod;
+            this.Rho = rho;
         }
     }
 }
