@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using FEM.Classes;
+using FEM.Properties;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
@@ -64,7 +65,7 @@ namespace FEM.Components
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return Resources.crosssec;
             }
         }
 

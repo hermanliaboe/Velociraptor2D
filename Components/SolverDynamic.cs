@@ -13,6 +13,7 @@ using Rhino.Commands;
 using Rhino.Render;
 using System.IO;
 using Grasshopper.Kernel.Types;
+using FEM.Properties;
 
 namespace FEM.Components
 {
@@ -22,11 +23,13 @@ namespace FEM.Components
         /// Initializes a new instance of the MyComponent2 class.
         /// </summary>
         public DynamicSolver()
-          : base("DynamicSolver", "Nickname",
-              "Description",
-              "Category", "Subcategory")
+          : base("DynamicSolver", "femmern",
+            "FEM solver with Newmark method",
+            "Masters", "FEM")
         {
         }
+
+
 
         /// <summary>
         /// Registers all the input parameters for this component.
@@ -93,7 +96,7 @@ namespace FEM.Components
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return Resources.SolverDyn;
             }
         }
 

@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Xml.Linq;
 using FEM.Classes;
+using FEM.Properties;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 
@@ -113,8 +115,9 @@ namespace FEM.Components
             get
             {
                 //You can add image files to your project resources and access them like this:
-                // return Resources.IconForThisComponent;
-                return null;
+                //return Resources.assembly.bmp;
+                
+                return Resources.assembly;
             }
         }
 

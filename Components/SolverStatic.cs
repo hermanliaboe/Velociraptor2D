@@ -13,6 +13,7 @@ using Rhino.Commands;
 using Rhino.Render;
 using System.IO;
 using Grasshopper.Kernel.Types;
+using FEM.Properties;
 
 namespace FEM.Components
 {
@@ -123,14 +124,22 @@ namespace FEM.Components
             
         }
 
- 
+
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
         /// Icons need to be 24x24 pixels.
         /// You can add image files to your project resources and access them like this:
         /// return Resources.IconForThisComponent;
         /// </summary>
-        protected override System.Drawing.Bitmap Icon => null;
+        protected override System.Drawing.Bitmap Icon
+        {
+            get
+            {
+                //You can add image files to your project resources and access them like this:
+                // return Resources.IconForThisComponent;
+                return Resources.SolverStatic_main_;
+            }
+        }
 
         /// <summary>
         /// Each component must have a unique Guid to identify it. 
