@@ -18,6 +18,7 @@ using Grasshopper.Kernel.Types;
 using FEM.Properties;
 using System.Numerics;
 using System.Linq;
+using GH_IO;
 
 namespace FEM.Components
 {
@@ -85,27 +86,46 @@ namespace FEM.Components
             DA.SetData(6, M);
 
         }
-        void Newmark(double beta, double gamma, double dt, LA.Matrix<double> M, LA.Matrix<double> K, LA.Matrix<double> C)
+        void Newmark(double beta, double gamma, double dt, LA.Matrix<double> M, LA.Matrix<double> K, LA.Matrix<double> C, 
+           LA.Vector<double> f0, LA.Vector<double> d0, LA.Vector<double> v0, double T, out LA.Matrix<double> displacements, 
+           out LA.Matrix<double> velocities)
         {
-            // initial calculations
+            // d0 and v0 inputs are (dof, 1) matrices
+            int dof = K.RowCount;
+            var d = LA.Matrix<double>.Build.Dense(dof ,((int)(T / dt)), 0);
+            var v = LA.Matrix<double>.Build.Dense(dof, ((int)(T / dt)), 0);
+            var a = LA.Matrix<double>.Build.Dense(dof, ((int)(T / dt)), 0);
+            var fTime = LA.Matrix<double>.Build.Dense(dof, ((int)(T / dt)), 0);
 
-            //Integration constants
 
-            double b1 = 1 / (beta * dt * dt);
-            double b2 = 1 / (gamma * dt);
-            double b3 = beta - 0.5;
-            double b4 = gamma * dt * b1;
+            d.SetColumn(0, d0);
+            v.SetColumn(0, v0);
+            fTime.SetColumn(0, f0);
+
+
+            // Initial calculation
+            var a0 = M.Inverse().Multiply(f0 - C.Multiply(v0) - K.Multiply(d0));
+            a.SetColumn(0, a0);
             
+            for (int n = 0; n < d.RowCount; n++)
+            {
+                // predictor step
+                var dPred = d.Column(n) + dt * v.Column(n) + 0.5*(1 - 2*beta)*Math.Pow(dt, 2)*a.Column(n);
+                var vPred = v.Column(n);
 
-           
+                // solution step
+                // if force is a function of time, set F_n+1 to updated value (not f0)
+                fTime.SetColumn(n+1, f0);
+                var fPrime = fTime.Column(n+1) - C.Multiply(vPred) - K.Multiply(dPred);
+                var Mprime = M + gamma * dt * C + beta * Math.Pow(dt, 2) * K;
+                a.SetColumn(n + 1, M.Inverse().Multiply(fPrime));
 
-
-
-
-
-            // 
-
-
+                // connector step
+                d.SetColumn(n+1, dPred + beta*Math.Pow(dt, 2)*a.Column(n+1));
+                v.SetColumn(n+1, vPred + gamma*dt*a.Column(n+1));
+            }
+            velocities = v;
+            displacements = d;
         }
 
         public double[] EigenValue(LA.Matrix<double> K, LA.Matrix<double> M)
