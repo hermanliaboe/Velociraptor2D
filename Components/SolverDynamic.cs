@@ -89,10 +89,15 @@ namespace FEM.Components
         {
             // initial calculations
 
-            //u
-            u
+            //Integration constants
 
-            var u = 
+            double b1 = 1 / (beta * dt * dt);
+            double b2 = 1 / (gamma * dt);
+            double b3 = beta - 0.5;
+            double b4 = gamma * dt * b1;
+            
+
+           
 
 
 
