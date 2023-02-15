@@ -5,15 +5,19 @@ using Rhino.Geometry;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using MathNet.Numerics.LinearAlgebra.Double;
 using MathNet.Numerics;
-
+using MathNet.Numerics.OdeSolvers;
+using MathNet.Numerics.LinearAlgebra.Factorization;
 using LA = MathNet.Numerics.LinearAlgebra;
+
+
 using Rhino.Commands;
 using Rhino.Render;
 using System.IO;
 using Grasshopper.Kernel.Types;
 using FEM.Properties;
+using System.Numerics;
+using System.Linq;
 
 namespace FEM.Components
 {
@@ -83,9 +87,35 @@ namespace FEM.Components
         }
         void Newmark(double beta, double gamma, double dt, LA.Matrix<double> M, LA.Matrix<double> K, LA.Matrix<double> C)
         {
-            // solve some shit
+            // initial calculations
+
+            //u
+            u
+
+            var u = 
+
+
+
+
+
+            // 
+
+
         }
 
+        public double[] EigenValue(LA.Matrix<double> K, LA.Matrix<double> M)
+        {
+            // Solve the generalized eigenvalue problemv
+            var factorizedM = M.QR();
+            var factorizedK = factorizedM.Solve(K);
+            var evd = factorizedK.Evd(LA.Symmetricity.Asymmetric);
+
+            // Extract the eigenvalues and eigenvectors
+            double[] ev = evd.EigenValues.Select(x => x.Real).ToArray();
+            LA.Matrix<double> V = evd.EigenVectors;
+
+            return ev;
+        }
 
         /// <summary>
         /// Provides an Icon for the component.
