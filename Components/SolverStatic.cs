@@ -14,6 +14,9 @@ using Rhino.Render;
 using System.IO;
 using Grasshopper.Kernel.Types;
 using FEM.Properties;
+using Grasshopper.GUI;
+using MathNet.Numerics.Interpolation;
+using Grasshopper.Kernel.Geometry;
 
 namespace FEM.Components
 {
@@ -39,6 +42,7 @@ namespace FEM.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Assembly","ass","",GH_ParamAccess.item);
+            pManager.AddNumberParameter("Scale", "Scale", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -58,6 +62,7 @@ namespace FEM.Components
             //pManager.AddNumberParameter("list of rows in reduced stiffness matrix","","",GH_ParamAccess.list);
             pManager.AddMatrixParameter("list of rows in reduced stiffness matrix", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("mass matrix!", "massMat", "", GH_ParamAccess.item);
+            pManager.AddLineParameter("lines baby", "lines", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -68,8 +73,11 @@ namespace FEM.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Classes.Assembly model = new Classes.Assembly();
+            int scale = 0;
+
             DA.GetData(0, ref model);
-            
+            DA.GetData(1, ref scale);
+
 
             List<Load> loads = model.LoadList;
             List<BeamElement> elements = model.BeamList;
@@ -93,7 +101,6 @@ namespace FEM.Components
             LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
 
             List<string> dispList = new List<string>();
-
             for (int i = 0; i < dof; i=i+3)
             {
                 var nodeDisp = "{" + displacements[i, 0] + ", " + displacements[i + 1, 0] + ", " + displacements[i + 2, 0] + "}";
@@ -110,8 +117,8 @@ namespace FEM.Components
             }
 
             //double[,] csGlobalKsup = globalKsup.ToArray();
-            
-
+            List<Line> lineList1 = new List<Line>();
+            getNewGeometry(scale, displacements, elements, out lineList1);
 
             //DA.SetData(0, globalK);
             //DA.SetData(1, globalKsup);
@@ -120,10 +127,43 @@ namespace FEM.Components
             DA.SetData(2, globalKsup);
             DA.SetData(3, forceVec);
             DA.SetDataList(4, dispList);
-            DA.SetData(5, rhinoMatrix);
+            DA.SetData(6, displacements);
+            DA.SetDataList(7, lineList1);
             
         }
 
+
+
+        void getNewGeometry(int scale, LA.Matrix<double> displacements, List<BeamElement> beams, out List<Line> lineList)
+        {
+            List<Line> linelist2 = new List<Line>();
+            int i = 3;
+            foreach (BeamElement beam in beams)
+            {
+                int startId = beam.StartNode.GlobalID;
+                double sX1 = beam.StartNode.Point.X;
+                double sZ1 = beam.StartNode.Point.Z;
+
+                int endId = beam.EndNode.GlobalID;
+                double sX2 = beam.EndNode.Point.X;
+                double sZ2 = beam.EndNode.Point.Z;
+
+                double x1 = displacements[startId * i,  0];
+                double z1 = displacements[startId * i +1,0];
+                //double r1 = displacements[startId * i + 2,0];
+                Point3d sP = new Point3d(sX1 + x1 * scale, 0, sZ1 + z1 * scale);
+
+                double x2 = displacements[endId * i,   0];
+                double z2 = displacements[endId * i + 1, 0];
+                //double r2 = displacements[endId * i + 2, 0];
+                Point3d eP = new Point3d(sX2 + x2 * scale, 0,sZ2 + z2 * scale);
+
+                linelist2.Add(new Line(sP, eP));
+            }
+            lineList = linelist2;
+        }
+
+       
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
