@@ -76,12 +76,18 @@ namespace FEM.Components
             List<Node> nodes = model.NodeList;
             int dof = nodes.Count * 3;
 
-
+            //Creation of matrices
             Matrices matrices = new Matrices();
             LA.Matrix<double> M = matrices.BuildGlobalM(dof, elements, true);
             LA.Matrix<double> K = matrices.BuildGlobalK(dof, elements);
             LA.Matrix<double> C = LA.Matrix<double>.Build.Dense(dof, dof);
-            
+
+            //Usage of newmark
+           
+
+
+
+
 
             DA.SetData(6, M);
 

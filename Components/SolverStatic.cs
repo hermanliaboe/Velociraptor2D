@@ -42,7 +42,7 @@ namespace FEM.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Assembly","ass","",GH_ParamAccess.item);
-            pManager.AddNumberParameter("Scale", "Scale", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Scale", "Scale", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace FEM.Components
             //pManager.AddNumberParameter("list of rows in reduced stiffness matrix","","",GH_ParamAccess.list);
             pManager.AddMatrixParameter("list of rows in reduced stiffness matrix", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("mass matrix!", "massMat", "", GH_ParamAccess.item);
-            pManager.AddLineParameter("lines baby", "lines", "", GH_ParamAccess.list);
+            pManager.AddCurveParameter("lines baby", "lines", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -73,7 +73,7 @@ namespace FEM.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             Classes.Assembly model = new Classes.Assembly();
-            int scale = 0;
+            double scale = 0.0;
 
             DA.GetData(0, ref model);
             DA.GetData(1, ref scale);
@@ -117,7 +117,7 @@ namespace FEM.Components
             }
 
             //double[,] csGlobalKsup = globalKsup.ToArray();
-            List<Line> lineList1 = new List<Line>();
+            List<NurbsCurve> lineList1 = new List<NurbsCurve>();
             getNewGeometry(scale, displacements, elements, out lineList1);
 
             //DA.SetData(0, globalK);
@@ -134,36 +134,49 @@ namespace FEM.Components
 
 
 
-        void getNewGeometry(int scale, LA.Matrix<double> displacements, List<BeamElement> beams, out List<Line> lineList)
+        void getNewGeometry(double scale, LA.Matrix<double> displacements, List<BeamElement> beams, out List<NurbsCurve> lineList)
         {
             List<Line> linelist2 = new List<Line>();
+            List<NurbsCurve> linelist3 = new List<NurbsCurve>();
             int i = 3;
+            
             foreach (BeamElement beam in beams)
             {
                 int startId = beam.StartNode.GlobalID;
-                double sX1 = beam.StartNode.Point.X;
-                double sZ1 = beam.StartNode.Point.Z;
+                double X1 = beam.StartNode.Point.X;
+                double Z1 = beam.StartNode.Point.Z;
 
                 int endId = beam.EndNode.GlobalID;
-                double sX2 = beam.EndNode.Point.X;
-                double sZ2 = beam.EndNode.Point.Z;
+                double X2 = beam.EndNode.Point.X;
+                double Z2 = beam.EndNode.Point.Z;
 
                 double x1 = displacements[startId * i,  0];
                 double z1 = displacements[startId * i +1,0];
-                //double r1 = displacements[startId * i + 2,0];
-                Point3d sP = new Point3d(sX1 + x1 * scale, 0, sZ1 + z1 * scale);
+                double r1 = displacements[startId * i + 2,0];
+                Point3d sP = new Point3d(X1 + x1 * scale, 0, Z1 + z1 * scale);
 
                 double x2 = displacements[endId * i,   0];
                 double z2 = displacements[endId * i + 1, 0];
-                //double r2 = displacements[endId * i + 2, 0];
-                Point3d eP = new Point3d(sX2 + x2 * scale, 0,sZ2 + z2 * scale);
+                double r2 = displacements[endId * i + 2, 0];
+                Point3d eP = new Point3d(X2 + x2 * scale, 0,Z2 + z2 * scale);
 
-                linelist2.Add(new Line(sP, eP));
+                Vector3d sV1 = new Vector3d((X2 - X1), 0, Z2 - Z1);
+                Vector3d sV2 = sV1;
+                Vector3d yVec = new Vector3d(0, 1, 0);
+
+                sV1.Rotate(r1 * scale, yVec);
+                sV2.Rotate(r2 * scale, yVec);
+
+                List<Point3d> pts = new List<Point3d>() { sP, eP };
+                NurbsCurve nc = NurbsCurve.CreateHSpline(pts, sV1, sV2);
+                linelist3.Add(nc);
             }
-            lineList = linelist2;
+            lineList = linelist3;
         }
 
-       
+            
+
+
 
         /// <summary>
         /// Provides an Icon for every component that will be visible in the User Interface.
