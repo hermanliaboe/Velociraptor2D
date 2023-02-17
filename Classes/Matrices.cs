@@ -161,8 +161,6 @@ namespace FEM.Classes
         public LA.Matrix<double> BuildGlobalKsup(int dof, LA.Matrix<double> globalK, List<Support> supports, List<Node> nodes)
         {
             LA.Matrix<double> globalKsup = globalK.Clone();
-
-
             foreach (Support support in supports)
             {
                 foreach (Node node in nodes)
@@ -181,7 +179,7 @@ namespace FEM.Classes
                             globalKsup.SetSubMatrix(0, idN*3, col);
                             globalKsup[idN*3, idN*3] = 1;
                         }
-                        if (support.Ty == true)
+                        if (support.Tz == true)
                         {
                             globalKsup.SetSubMatrix(idN * 3 + 1, 0, row);
                             globalKsup.SetSubMatrix(0, idN * 3 + 1 , col);
@@ -234,12 +232,9 @@ namespace FEM.Classes
                 // if bool lumped is true, sets mEl to lumped mass matrix by
                 // summing up the rows of the matrix and placing them on the diagonal
             {
-                LA.Matrix<double> mElLumped = mEl.Clone();
+                LA.Matrix<double> mElLumped = LA.Matrix<double>.Build.Dense(mEl.RowCount, mEl.ColumnCount, 0);
                 LA.Vector<double> rowSums = mEl.RowSums();
-                for (int i = 0; i < dof; i++)
-                {
-                    mElLumped[i, i] = rowSums[i];
-                }
+                mElLumped.SetDiagonal(rowSums);
                 mEl = mElLumped;
             }
 
@@ -282,9 +277,82 @@ namespace FEM.Classes
                     }
                 }
             }
-            
+
             return globalM;
         }
+        public LA.Matrix<double> BuildGlobalMsup(int dof, LA.Matrix<double> globalM, List<Support> supports, List<Node> nodes)
+        {
+            LA.Matrix<double> globalMsup = globalM.Clone();
+            foreach (Support support in supports)
+            {
+                foreach (Node node in nodes)
+                {
+
+                    if (support.Point == node.Point)
+                    {
+                        LA.Matrix<double> col = LA.Matrix<double>.Build.Dense(dof, 1, 0);
+                        LA.Matrix<double> row = LA.Matrix<double>.Build.Dense(1, dof, 0);
+                        int idN = node.GlobalID;
+
+
+                        if (support.Tx == true)
+                        {
+                            globalMsup.SetSubMatrix(idN * 3, 0, row);
+                            globalMsup.SetSubMatrix(0, idN * 3, col);
+                        }
+                        if (support.Tz == true)
+                        {
+                            globalMsup.SetSubMatrix(idN * 3 + 1, 0, row);
+                            globalMsup.SetSubMatrix(0, idN * 3 + 1, col);
+                        }
+                        if (support.Ry == true)
+                        {
+                            globalMsup.SetSubMatrix(idN * 3 + 2, 0, row);
+                            globalMsup.SetSubMatrix(0, idN * 3 + 2, col);
+                        }
+                    }
+                }
+            }
+            return globalMsup;
+        }
+
+
+        public LA.Matrix<double> BuildC(LA.Matrix<double> M, LA.Matrix<double> K, double zeta, double wi, double wj)
+        {
+            LA.Matrix<double> W = EigenValue(K, M);
+            //double wi = W[0, w1];
+            //double wj = W[0, w2];
+
+            double a0 = zeta * (2*wi * wj) / (wi + wj);
+            double a1 = zeta *(2) / (wi + wj);
+
+            var C = M.Multiply(a0) + K.Multiply(a1);
+            
+            return C;
+        }
+
+
+        public LA.Matrix<double> EigenValue(LA.Matrix<double> K, LA.Matrix<double> M)
+        {
+            // Solve the generalized eigenvalue problemv
+            var factorizedM = M.QR();
+            var factorizedK = factorizedM.Solve(K);
+            var evd = factorizedK.Evd(LA.Symmetricity.Asymmetric);
+
+            // Extract the eigenvalues and eigenvectors
+            double[] ev = evd.EigenValues.Select(x => x.Real).ToArray();
+            LA.Matrix<double> V = evd.EigenVectors;
+            var W = LA.Matrix<double>.Build.Dense(1, ev.Length);
+            int i = 0;
+            foreach (double w in ev)
+            {
+                W[0, i] = w;
+                i++;
+            }
+            return W;
+        }
+
+
 
         //Creates global lumped mass matrix #############################################################################
         //public LA.Matrix<double> BuildMassMatrix(int dof, List<BeamElement> beams)

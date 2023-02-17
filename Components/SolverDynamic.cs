@@ -19,6 +19,7 @@ using FEM.Properties;
 using System.Numerics;
 using System.Linq;
 using GH_IO;
+using MathNet.Numerics.LinearAlgebra.Complex;
 
 namespace FEM.Components
 {
@@ -50,13 +51,14 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("item in matrix", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("globalK", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("globalKsup", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("forceVec", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("displacements", "", "", GH_ParamAccess.list);
-            pManager.AddMatrixParameter("list of rows in reduced stiffness matrix", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("mass matrix!", "massMat", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("item", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("global K", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("global Ksup", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("force Vec", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Mass matrix", "massMat", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Damping matrix", "DampMat", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Displacements", "DispMat", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Velocity", "VeloMat", "", GH_ParamAccess.item);
 
         }
 
@@ -78,22 +80,42 @@ namespace FEM.Components
 
             //Creation of matrices
             Matrices matrices = new Matrices();
+
+            LA.Matrix<double> globalK = matrices.BuildGlobalK(dof, elements);
+            LA.Matrix<double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
+
             LA.Matrix<double> M = matrices.BuildGlobalM(dof, elements, true);
-            LA.Matrix<double> K = matrices.BuildGlobalK(dof, elements);
-            LA.Matrix<double> C = LA.Matrix<double>.Build.Dense(dof, dof);
+            LA.Matrix<double> globalMsup = matrices.BuildGlobalKsup(dof, M, supports, nodes);
 
-            //Usage of newmark
+            LA.Matrix<double> C = matrices.BuildC(M,globalKsup,0.05,0.1,100);
+            LA.Matrix<double> f0 = matrices.BuildForceVector(loads, dof);
            
+            //Usage of newmark
+
+            double T = 5.0;
+            double dt = 0.1;
+            double beta = 1 / 6;
+            double gamma = 1 / 2;
+
+            LA.Matrix<double> d0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
+            LA.Matrix<double> v0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
 
 
+            Newmark(beta, gamma, dt, globalMsup, globalKsup, C, f0, d0,v0,T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
 
+            //DA.SetData(0, item);
+            DA.SetData(1, globalK);
+            DA.SetData(2, globalKsup);
+            DA.SetData(3, f0);
+            DA.SetData(4, globalMsup);
+            DA.SetData(5, C);
+            DA.SetData(6, displacements);
+            DA.SetData(7, velocities);
 
-
-            DA.SetData(6, M);
 
         }
         void Newmark(double beta, double gamma, double dt, LA.Matrix<double> M, LA.Matrix<double> K, LA.Matrix<double> C, 
-           LA.Vector<double> f0, LA.Vector<double> d0, LA.Vector<double> v0, double T, out LA.Matrix<double> displacements, 
+           LA.Matrix<double> f0, LA.Matrix<double> d0, LA.Matrix<double> v0, double T, out LA.Matrix<double> displacements, 
            out LA.Matrix<double> velocities)
         {
             // d0 and v0 inputs are (dof, 1) matrices
@@ -101,52 +123,43 @@ namespace FEM.Components
             var d = LA.Matrix<double>.Build.Dense(dof ,((int)(T / dt)), 0);
             var v = LA.Matrix<double>.Build.Dense(dof, ((int)(T / dt)), 0);
             var a = LA.Matrix<double>.Build.Dense(dof, ((int)(T / dt)), 0);
-            var fTime = LA.Matrix<double>.Build.Dense(dof, ((int)(T / dt)), 0);
+            LA.Matrix<double> fTime = LA.Matrix<double>.Build.Dense(dof, ((int)(T / dt)), 0);
 
 
-            d.SetColumn(0, d0);
-            v.SetColumn(0, v0);
-            fTime.SetColumn(0, f0);
+            d.SetSubMatrix(0,dof, 0, 1, d0);
+            v.SetSubMatrix(0, dof, 0, 1 , v0);
+            fTime.SetSubMatrix(0, dof, 0, 1 , f0);
 
 
             // Initial calculation
-            var a0 = M.Inverse().Multiply(f0 - C.Multiply(v0) - K.Multiply(d0));
-            a.SetColumn(0, a0);
-            
-            for (int n = 0; n < d.RowCount; n++)
+            LA.Matrix<double> Minv = M.Inverse();
+            var a0 = Minv.Multiply(f0 - C.Multiply(v0) - K.Multiply(d0));
+            a.SetSubMatrix(0,dof,0,1, a0);
+            v.SetSubMatrix(0, dof, 0, 1, v0 + dt * (1 - gamma) * a0);
+
+            for (int n = 0; n < d.ColumnCount-1; n++)
             {
                 // predictor step
-                var dPred = d.Column(n) + dt * v.Column(n) + 0.5*(1 - 2*beta)*Math.Pow(dt, 2)*a.Column(n);
-                var vPred = v.Column(n);
+                var dPred = d.SubMatrix(0,dof, n, 1) + dt * v.SubMatrix(0, dof, n, 1) + 0.5*(1 - 2*beta)*Math.Pow(dt, 2)*a.SubMatrix(0, dof, n, 1);
+                var vPred = v.SubMatrix(0, dof, n, 1) + (1 - gamma) * dt * a.SubMatrix(0, dof, n, 1);
 
                 // solution step
                 // if force is a function of time, set F_n+1 to updated value (not f0)
-                fTime.SetColumn(n+1, f0);
-                var fPrime = fTime.Column(n+1) - C.Multiply(vPred) - K.Multiply(dPred);
+                fTime.SetSubMatrix(0,dof,n+1,1, f0);
+                var fPrime = fTime.SubMatrix(0,dof, n+1, 1 ) - C.Multiply(vPred) - K.Multiply(dPred);
                 var Mprime = M + gamma * dt * C + beta * Math.Pow(dt, 2) * K;
-                a.SetColumn(n + 1, M.Inverse().Multiply(fPrime));
+                LA.Matrix<double> MprimeInv = Mprime.Inverse();
+                a.SetSubMatrix(0,n + 1, MprimeInv.Multiply(fPrime));
 
                 // connector step
-                d.SetColumn(n+1, dPred + beta*Math.Pow(dt, 2)*a.Column(n+1));
-                v.SetColumn(n+1, vPred + gamma*dt*a.Column(n+1));
+                d.SetSubMatrix(0, dof, n+1,1, dPred + beta * Math.Pow(dt, 2) * a.SubMatrix(0,dof,n+1,1));
+                v.SetSubMatrix(0, dof, n+1,1, vPred + gamma * dt * a.SubMatrix(0,dof,n+1,1));
             }
             velocities = v;
             displacements = d;
         }
 
-        public double[] EigenValue(LA.Matrix<double> K, LA.Matrix<double> M)
-        {
-            // Solve the generalized eigenvalue problemv
-            var factorizedM = M.QR();
-            var factorizedK = factorizedM.Solve(K);
-            var evd = factorizedK.Evd(LA.Symmetricity.Asymmetric);
-
-            // Extract the eigenvalues and eigenvectors
-            double[] ev = evd.EigenValues.Select(x => x.Real).ToArray();
-            LA.Matrix<double> V = evd.EigenVectors;
-
-            return ev;
-        }
+       
 
         /// <summary>
         /// Provides an Icon for the component.

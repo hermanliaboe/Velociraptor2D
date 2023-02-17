@@ -50,19 +50,13 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            //pManager.AddPointParameter("New points","","",GH_ParamAccess.list);
-            //pManager.AddLineParameter("New geometry","lines","", GH_ParamAccess.list);
-            //pManager.AddMatrixParameter(" Global K", "globK", "", GH_ParamAccess.item);
-            //pManager.AddMatrixParameter("Global K supports", "globksup", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("item in matrix","","",GH_ParamAccess.item);
-            pManager.AddGenericParameter("globalK","","",GH_ParamAccess.item);
-            pManager.AddGenericParameter("globalKsup", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("forceVec", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("displacements", "", "", GH_ParamAccess.list);
-            //pManager.AddNumberParameter("list of rows in reduced stiffness matrix","","",GH_ParamAccess.list);
-            pManager.AddMatrixParameter("list of rows in reduced stiffness matrix", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("mass matrix!", "massMat", "", GH_ParamAccess.item);
-            pManager.AddCurveParameter("lines baby", "lines", "", GH_ParamAccess.list);
+            pManager.AddNumberParameter("item","item","item",GH_ParamAccess.item);
+            pManager.AddGenericParameter("global K","","",GH_ParamAccess.item);
+            pManager.AddGenericParameter("global Ksup", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("force Vec", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("displacements Vec", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("displacements List", "", "", GH_ParamAccess.list);
+            pManager.AddCurveParameter("new lines", "lines", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -96,10 +90,9 @@ namespace FEM.Components
             LA.Matrix<double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
             LA.Matrix<double> forceVec = matrices.BuildForceVector(loads, dof);
 
-
-
             LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
 
+            
             List<string> dispList = new List<string>();
             for (int i = 0; i < dof; i=i+3)
             {
@@ -115,20 +108,20 @@ namespace FEM.Components
                     rhinoMatrix[i,j] = globalKsup[i,j];
                 }
             }
-
-            //double[,] csGlobalKsup = globalKsup.ToArray();
+            
+            
             List<NurbsCurve> lineList1 = new List<NurbsCurve>();
             getNewGeometry(scale, displacements, elements, out lineList1);
 
-            //DA.SetData(0, globalK);
-            //DA.SetData(1, globalKsup);
-            DA.SetData(0, globalKsup[9,9]);
+            
+
+            //DA.SetData(0, item);
             DA.SetData(1, globalK);
             DA.SetData(2, globalKsup);
             DA.SetData(3, forceVec);
-            DA.SetDataList(4, dispList);
-            DA.SetData(6, displacements);
-            DA.SetDataList(7, lineList1);
+            DA.SetData(4, displacements);
+            DA.SetDataList(5, dispList);
+            DA.SetDataList(6, lineList1);
             
         }
 

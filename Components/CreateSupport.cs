@@ -25,8 +25,8 @@ namespace FEM.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddPointParameter("Point", "pt", "Add support point here", GH_ParamAccess.item);
-            pManager.AddBooleanParameter("Tz", "Tz", "Is the support fixed for Tz?", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Tx", "Tx", "Is the support fixed for Tx?", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Tz", "Tz", "Is the support fixed for Tz?", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Ry", "Ry", "Is the support fixed for Ry?", GH_ParamAccess.item);
         }
 
@@ -46,17 +46,17 @@ namespace FEM.Components
 
         {
             Point3d supPt = new Point3d();
-            var tz = false;
             var tx = false;
+            var tz = false;
             var ry = false;
 
             DA.GetData(0, ref supPt);
-            DA.GetData(1, ref tz);
-            DA.GetData(2, ref tx);
+            DA.GetData(1, ref tx);
+            DA.GetData(2, ref tz);
             DA.GetData(3, ref ry);
 
             List<Support> supportList = new List<Support>();
-            Support support = new Support(supPt, tz, tx, ry);
+            Support support = new Support(supPt, tx, tz, ry);
             supportList.Add(support);
 
             DA.SetDataList(0,supportList);
