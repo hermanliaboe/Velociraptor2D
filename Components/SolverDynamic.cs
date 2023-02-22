@@ -164,6 +164,7 @@ namespace FEM.Components
             var v = LA.Matrix<double>.Build.Dense(dof, ((int)(T / dt)), 0);
             var a = LA.Matrix<double>.Build.Dense(dof, ((int)(T / dt)), 0);
             LA.Matrix<double> fTime = LA.Matrix<double>.Build.Dense(dof, ((int)(T / dt)), 0);
+            var fZeros = LA.Matrix<double>.Build.Dense(dof, 1, 0);
 
 
             d.SetSubMatrix(0,dof, 0, 1, d0);
@@ -175,7 +176,6 @@ namespace FEM.Components
             LA.Matrix<double> Minv = M.Inverse();
             var a0 = Minv.Multiply(f0 - C.Multiply(v0) - K.Multiply(d0));
             a.SetSubMatrix(0,dof,0,1, a0);
-            v.SetSubMatrix(0, dof, 0, 1, v0 + dt * (1 - gamma) * a0);
 
             for (int n = 0; n < d.ColumnCount-1; n++)
             {
@@ -185,8 +185,8 @@ namespace FEM.Components
 
                 // solution step
                 // if force is a function of time, set F_n+1 to updated value (not f0)
-                fTime.SetSubMatrix(0,dof,n+1,1, f0);
-                var fPrime = fTime.SubMatrix(0,dof, n+1, 1 ) - C.Multiply(vPred) - K.Multiply(dPred);
+                fTime.SetSubMatrix(0,dof,n+1,1, fZeros);
+                var fPrime = fTime.SubMatrix(0,dof, n+1, 1) - C.Multiply(vPred) - K.Multiply(dPred);
                 var Mprime = M + gamma * dt * C + beta * Math.Pow(dt, 2) * K;
                 LA.Matrix<double> MprimeInv = Mprime.Inverse();
                 a.SetSubMatrix(0,n + 1, MprimeInv.Multiply(fPrime));

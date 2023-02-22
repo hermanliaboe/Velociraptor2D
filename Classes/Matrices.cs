@@ -104,7 +104,7 @@ namespace FEM.Classes
             double z2 = endNode.Point.Z;
             double x2 = endNode.Point.X;
 
-            double l = (Math.Sqrt(Math.Pow(z2 - z1, 2.0) + Math.Pow(x2 - x1, 2.0)));
+            double l = beam.Length;
 
             //Define standard k for two node beam element. 
             LA.Matrix<double> kEl = LA.Matrix<double>.Build.Dense(dof, dof, 0);
@@ -128,7 +128,7 @@ namespace FEM.Classes
             kEl[2, 0] = 0;    kEl[2, 1] = -eilC;kEl[2, 2] = eilD;  kEl[2, 3] = 0;     kEl[2, 4] = eilC;  kEl[2, 5] = eilE;
             kEl[3, 0] = -ealA;kEl[3, 1] = 0;    kEl[3, 2] = 0;     kEl[3, 3] = ealA;  kEl[3, 4] = 0;     kEl[3, 5] = 0;
             kEl[4, 0] = 0;    kEl[4, 1] = -eilB;kEl[4, 2] = eilC;  kEl[4, 3] = 0;     kEl[4, 4] = eilB;  kEl[4, 5] = eilC;
-            kEl[5, 0] = 0;    kEl[5, 1] = -eilC;kEl[5, 2] = eilD;  kEl[5, 3] = 0;     kEl[5, 4] = eilC;  kEl[5, 5] = eilE;
+            kEl[5, 0] = 0;    kEl[5, 1] = -eilC;kEl[5, 2] = eilE;  kEl[5, 3] = 0;     kEl[5, 4] = eilC;  kEl[5, 5] = eilD;
 
 
             //Creates T-matrix to adjust element to global axis
