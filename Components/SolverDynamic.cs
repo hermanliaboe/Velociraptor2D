@@ -105,8 +105,8 @@ namespace FEM.Components
             LA.Matrix<double> v0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
 
 
-            //Newmark(beta, gamma, dt, globalMsupC, globalKsup, supC, f0, d0,v0,T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
-            Newmark(beta, gamma, dt, consistentM, globalKsup, C, f0, d0, v0, T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
+            Newmark(beta, gamma, dt, globalMsupC, globalKsup, supC, f0, d0,v0,T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
+            //Newmark(beta, gamma, dt, consistentM, globalKsup, C, f0, d0, v0, T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
 
 
             Rhino.Geometry.Matrix rhinoMatrixK = new Rhino.Geometry.Matrix(dof, dof);
@@ -126,19 +126,19 @@ namespace FEM.Components
                 }
             }
             Rhino.Geometry.Matrix rhinoMatrixMcons = new Rhino.Geometry.Matrix(dof, dof);
-            for (int i = 0; i < consistentM.RowCount; i++)
+            for (int i = 0; i < globalMsupC.RowCount; i++)
             {
-                for (int j = 0; j < consistentM.ColumnCount; j++)
+                for (int j = 0; j < globalMsupC.ColumnCount; j++)
                 {
-                    rhinoMatrixMcons[i, j] = consistentM[i, j];
+                    rhinoMatrixMcons[i, j] = globalMsupC[i, j];
                 }
             }
             Rhino.Geometry.Matrix rhinoMatrixC = new Rhino.Geometry.Matrix(dof, dof);
-            for (int i = 0; i < C.RowCount; i++)
+            for (int i = 0; i < supC.RowCount; i++)
             {
-                for (int j = 0; j < C.ColumnCount; j++)
+                for (int j = 0; j < supC.ColumnCount; j++)
                 {
-                    rhinoMatrixC[i, j] = C[i, j];
+                    rhinoMatrixC[i, j] = supC[i, j];
                 }
             }
 
