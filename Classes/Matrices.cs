@@ -220,15 +220,16 @@ namespace FEM.Classes
             mEl[1, 1] = mEl[4, 4] = 156;
             mEl[1, 2] = mEl[2, 1] = 22 * l;
             mEl[1, 4] = mEl[4, 1] = 54;
-            mEl[1, 5] = mEl[5, 5] = -13 * l;
+            mEl[1, 5] = mEl[5, 1] = -13 * l;
             mEl[2, 2] = mEl[5, 5] = 4*Math.Pow(l, 2);
             mEl[2, 4] = mEl[4, 2] = 13 * l;
             mEl[2, 5] = mEl[5, 2] = -3 * Math.Pow(l, 2);
-            mEl[4, 5] = mEl[5, 5] = -22 * l;
+            mEl[4, 5] = mEl[5, 4] = -22 * l;
 
             mEl *= (mTot / 420);
 
-            if (lumped) 
+
+            if (lumped==true) 
                 // if bool lumped is true, sets mEl to lumped mass matrix by
                 // summing up the rows of the matrix and placing them on the diagonal
             {
@@ -280,9 +281,9 @@ namespace FEM.Classes
 
             return globalM;
         }
-        public LA.Matrix<double> BuildGlobalMsup(int dof, LA.Matrix<double> globalM, List<Support> supports, List<Node> nodes)
+        public LA.Matrix<double> BuildSupMat(int dof, LA.Matrix<double> globalM, List<Support> supports, List<Node> nodes)
         {
-            LA.Matrix<double> globalMsup = globalM.Clone();
+            LA.Matrix<double> supMatrix = globalM.Clone();
             foreach (Support support in supports)
             {
                 foreach (Node node in nodes)
@@ -297,23 +298,26 @@ namespace FEM.Classes
 
                         if (support.Tx == true)
                         {
-                            globalMsup.SetSubMatrix(idN * 3, 0, row);
-                            globalMsup.SetSubMatrix(0, idN * 3, col);
+                            supMatrix.SetSubMatrix(idN * 3, 0, row);
+                            supMatrix.SetSubMatrix(0, idN * 3, col);
+                            supMatrix[idN * 3, idN * 3] = 1;
                         }
                         if (support.Tz == true)
                         {
-                            globalMsup.SetSubMatrix(idN * 3 + 1, 0, row);
-                            globalMsup.SetSubMatrix(0, idN * 3 + 1, col);
+                            supMatrix.SetSubMatrix(idN * 3 + 1, 0, row);
+                            supMatrix.SetSubMatrix(0, idN * 3 + 1, col);
+                            supMatrix[idN * 3 + 1, idN * 3 + 1] = 1;
                         }
                         if (support.Ry == true)
                         {
-                            globalMsup.SetSubMatrix(idN * 3 + 2, 0, row);
-                            globalMsup.SetSubMatrix(0, idN * 3 + 2, col);
+                            supMatrix.SetSubMatrix(idN * 3 + 2, 0, row);
+                            supMatrix.SetSubMatrix(0, idN * 3 + 2, col);
+                            supMatrix[idN * 3 + 2, idN * 3 + 2] = 1;
                         }
                     }
                 }
             }
-            return globalMsup;
+            return supMatrix;
         }
 
 

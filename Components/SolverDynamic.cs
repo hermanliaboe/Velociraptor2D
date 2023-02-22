@@ -51,15 +51,16 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("item", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("global K", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("global Ksup", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("force Vec", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Mass matrix", "massMat", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter(" Lumped Mass matrix", "LumpMassMat", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("consistent Mass matrix", "ConsMassMat", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Damping matrix", "DampMat", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Displacements", "DispMat", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Velocity", "VeloMat", "", GH_ParamAccess.item);
-
+            pManager.AddGenericParameter("mass matric C# matrix","lumpedMass","",GH_ParamAccess.item);
+            pManager.AddGenericParameter("consistent mass matrix C# matrix", "consMass", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -82,38 +83,77 @@ namespace FEM.Components
             Matrices matrices = new Matrices();
 
             LA.Matrix<double> globalK = matrices.BuildGlobalK(dof, elements);
-            LA.Matrix<double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
+            LA.Matrix<double> globalKsup = matrices.BuildSupMat(dof, globalK, supports, nodes);
 
             LA.Matrix<double> M = matrices.BuildGlobalM(dof, elements, true);
-            LA.Matrix<double> globalMsup = matrices.BuildGlobalKsup(dof, M, supports, nodes);
+            LA.Matrix<double> consistentM = matrices.BuildGlobalM(dof, elements, false);
+            LA.Matrix<double> globalMsup = matrices.BuildSupMat(dof, M, supports, nodes);   
+            LA.Matrix<double> globalMsupC = matrices.BuildSupMat(dof, consistentM, supports, nodes);
 
             LA.Matrix<double> C = matrices.BuildC(M,globalKsup,0.05,0.1,100);
+            LA.Matrix<double> supC = matrices.BuildSupMat(dof, C, supports, nodes);
             LA.Matrix<double> f0 = matrices.BuildForceVector(loads, dof);
            
             //Usage of newmark
 
             double T = 5.0;
             double dt = 0.1;
-            double beta = 1 / 6;
+            double beta = 1 / 4;
             double gamma = 1 / 2;
 
             LA.Matrix<double> d0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
             LA.Matrix<double> v0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
 
 
-            Newmark(beta, gamma, dt, globalMsup, globalKsup, C, f0, d0,v0,T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
+            Newmark(beta, gamma, dt, globalMsup, globalKsup, supC, f0, d0,v0,T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
 
-            //DA.SetData(0, item);
-            DA.SetData(1, globalK);
-            DA.SetData(2, globalKsup);
-            DA.SetData(3, f0);
-            DA.SetData(4, globalMsup);
-            DA.SetData(5, C);
+            Rhino.Geometry.Matrix rhinoMatrixK = new Rhino.Geometry.Matrix(dof, dof);
+            for (int i = 0; i < globalKsup.RowCount; i++)
+            {
+                for (int j = 0; j < globalKsup.ColumnCount; j++)
+                {
+                    rhinoMatrixK[i, j] = globalKsup[i, j];
+                }
+            }
+            Rhino.Geometry.Matrix rhinoMatrixM = new Rhino.Geometry.Matrix(dof, dof);
+            for (int i = 0; i < globalMsup.RowCount; i++)
+            {
+                for (int j = 0; j < globalMsup.ColumnCount; j++)
+                {
+                    rhinoMatrixM[i, j] = globalMsup[i, j];
+                }
+            }
+            Rhino.Geometry.Matrix rhinoMatrixMcons = new Rhino.Geometry.Matrix(dof, dof);
+            for (int i = 0; i < globalMsupC.RowCount; i++)
+            {
+                for (int j = 0; j < globalMsupC.ColumnCount; j++)
+                {
+                    rhinoMatrixMcons[i, j] = globalMsupC[i, j];
+                }
+            }
+            Rhino.Geometry.Matrix rhinoMatrixC = new Rhino.Geometry.Matrix(dof, dof);
+            for (int i = 0; i < supC.RowCount; i++)
+            {
+                for (int j = 0; j < supC.ColumnCount; j++)
+                {
+                    rhinoMatrixC[i, j] = supC[i, j];
+                }
+            }
+
+      
+            DA.SetData(0, globalK);
+            DA.SetData(1, rhinoMatrixK);
+            DA.SetData(2, f0);
+            DA.SetData(3, rhinoMatrixM);
+            DA.SetData(4, rhinoMatrixMcons);
+            DA.SetData(5, rhinoMatrixC);
             DA.SetData(6, displacements);
             DA.SetData(7, velocities);
-
-
+            DA.SetData(8, globalMsup);
+            DA.SetData(9, globalMsupC);
         }
+
+
         void Newmark(double beta, double gamma, double dt, LA.Matrix<double> M, LA.Matrix<double> K, LA.Matrix<double> C, 
            LA.Matrix<double> f0, LA.Matrix<double> d0, LA.Matrix<double> v0, double T, out LA.Matrix<double> displacements, 
            out LA.Matrix<double> velocities)
