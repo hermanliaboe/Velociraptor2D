@@ -17,6 +17,7 @@ using FEM.Properties;
 using Grasshopper.GUI;
 using MathNet.Numerics.Interpolation;
 using Grasshopper.Kernel.Geometry;
+using MathNet.Numerics.LinearAlgebra.Factorization;
 
 namespace FEM.Components
 {
@@ -131,10 +132,16 @@ namespace FEM.Components
         {
             List<Line> linelist2 = new List<Line>();
             List<NurbsCurve> linelist3 = new List<NurbsCurve>();
+
             int i = 3;
-            
+
             foreach (BeamElement beam in beams)
             {
+                Vector3d v1 = new Vector3d(0, 0, 0);
+                Vector3d v2 = new Vector3d(0, 0, 0);
+                double scale1 = scale;
+                double scale2 = scale;
+
                 int startId = beam.StartNode.GlobalID;
                 double X1 = beam.StartNode.Point.X;
                 double Z1 = beam.StartNode.Point.Z;
@@ -153,15 +160,40 @@ namespace FEM.Components
                 double r2 = displacements[endId * i + 2, 0];
                 Point3d eP = new Point3d(X2 + x2 * scale, 0,Z2 + z2 * scale);
 
-                Vector3d sV1 = new Vector3d((X2 - X1), 0, Z2 - Z1);
-                Vector3d sV2 = sV1;
                 Vector3d yVec = new Vector3d(0, 1, 0);
 
-                sV1.Rotate(r1 * scale, yVec);
-                sV2.Rotate(r2 * scale, yVec);
+
+                if (beam.StartNode.RyBC == true)
+                {
+                    Vector3d sV1 = new Vector3d((X2 - X1), 0, Z2 - Z1);
+                    scale1 = 0;
+                    sV1.Rotate(r1 * scale1, yVec);
+                    v1 = v1 + sV1;
+                }
+                else
+                {
+                    Vector3d sV1 = new Vector3d((eP.X - sP.X), 0, eP.Z - sP.Z);
+                    sV1.Rotate(r1 * scale1, yVec);
+                    v1 = v1 + sV1;
+                }
+
+                if (beam.EndNode.RyBC == true)
+                {
+                    Vector3d sV2 = new Vector3d((X2 - X1), 0, Z2 - Z1);
+                    scale2 = 0;
+                    sV2.Rotate(r2 * scale2, yVec);
+                    v2 = v2 + sV2;
+                }
+                else
+                {
+                    Vector3d sV2 = new Vector3d((eP.X - sP.X), 0, eP.Z - sP.Z);
+                    sV2.Rotate(r2 * scale2, yVec);
+                    v2 = v2 + sV2;
+                }
+
 
                 List<Point3d> pts = new List<Point3d>() { sP, eP };
-                NurbsCurve nc = NurbsCurve.CreateHSpline(pts, sV1, sV2);
+                NurbsCurve nc = NurbsCurve.CreateHSpline(pts, v1, v2);
                 linelist3.Add(nc);
             }
             lineList = linelist3;
