@@ -11,7 +11,7 @@ namespace FEM.Classes
     {
         public Point3d Point;
         public bool Tx;
-        public bool Ty;
+        public bool Tz;
         public bool Ry;
         
         public Support() { }
@@ -20,7 +20,7 @@ namespace FEM.Classes
         {
             this.Point = point;
             this.Tx = tx;
-            this.Ty = tz;
+            this.Tz = tz;
             this.Ry = ry;
             
 

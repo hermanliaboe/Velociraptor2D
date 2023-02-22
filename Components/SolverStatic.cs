@@ -17,6 +17,7 @@ using FEM.Properties;
 using Grasshopper.GUI;
 using MathNet.Numerics.Interpolation;
 using Grasshopper.Kernel.Geometry;
+using MathNet.Numerics.LinearAlgebra.Factorization;
 
 namespace FEM.Components
 {
@@ -50,19 +51,13 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            //pManager.AddPointParameter("New points","","",GH_ParamAccess.list);
-            //pManager.AddLineParameter("New geometry","lines","", GH_ParamAccess.list);
-            //pManager.AddMatrixParameter(" Global K", "globK", "", GH_ParamAccess.item);
-            //pManager.AddMatrixParameter("Global K supports", "globksup", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("item in matrix","","",GH_ParamAccess.item);
-            pManager.AddGenericParameter("globalK","","",GH_ParamAccess.item);
-            pManager.AddGenericParameter("globalKsup", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("forceVec", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("displacements", "", "", GH_ParamAccess.list);
-            //pManager.AddNumberParameter("list of rows in reduced stiffness matrix","","",GH_ParamAccess.list);
-            pManager.AddMatrixParameter("list of rows in reduced stiffness matrix", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("mass matrix!", "massMat", "", GH_ParamAccess.item);
-            pManager.AddCurveParameter("lines baby", "lines", "", GH_ParamAccess.list);
+            pManager.AddNumberParameter("item","item","item",GH_ParamAccess.item);
+            pManager.AddGenericParameter("global K","","",GH_ParamAccess.item);
+            pManager.AddGenericParameter("global Ksup", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("force Vec", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("displacements Vec", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("displacements List", "", "", GH_ParamAccess.list);
+            pManager.AddCurveParameter("new lines", "lines", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -96,10 +91,9 @@ namespace FEM.Components
             LA.Matrix<double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
             LA.Matrix<double> forceVec = matrices.BuildForceVector(loads, dof);
 
-
-
             LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
 
+            
             List<string> dispList = new List<string>();
             for (int i = 0; i < dof; i=i+3)
             {
@@ -115,20 +109,20 @@ namespace FEM.Components
                     rhinoMatrix[i,j] = globalKsup[i,j];
                 }
             }
-
-            //double[,] csGlobalKsup = globalKsup.ToArray();
+            
+            
             List<NurbsCurve> lineList1 = new List<NurbsCurve>();
             getNewGeometry(scale, displacements, elements, out lineList1);
 
-            //DA.SetData(0, globalK);
-            //DA.SetData(1, globalKsup);
-            DA.SetData(0, globalKsup[9,9]);
+            
+
+            //DA.SetData(0, item);
             DA.SetData(1, globalK);
             DA.SetData(2, globalKsup);
             DA.SetData(3, forceVec);
-            DA.SetDataList(4, dispList);
-            DA.SetData(6, displacements);
-            DA.SetDataList(7, lineList1);
+            DA.SetData(4, displacements);
+            DA.SetDataList(5, dispList);
+            DA.SetDataList(6, lineList1);
             
         }
 
@@ -138,10 +132,16 @@ namespace FEM.Components
         {
             List<Line> linelist2 = new List<Line>();
             List<NurbsCurve> linelist3 = new List<NurbsCurve>();
+
             int i = 3;
-            
+
             foreach (BeamElement beam in beams)
             {
+                Vector3d v1 = new Vector3d(0, 0, 0);
+                Vector3d v2 = new Vector3d(0, 0, 0);
+                double scale1 = scale;
+                double scale2 = scale;
+
                 int startId = beam.StartNode.GlobalID;
                 double X1 = beam.StartNode.Point.X;
                 double Z1 = beam.StartNode.Point.Z;
@@ -160,15 +160,40 @@ namespace FEM.Components
                 double r2 = displacements[endId * i + 2, 0];
                 Point3d eP = new Point3d(X2 + x2 * scale, 0,Z2 + z2 * scale);
 
-                Vector3d sV1 = new Vector3d((X2 - X1), 0, Z2 - Z1);
-                Vector3d sV2 = sV1;
                 Vector3d yVec = new Vector3d(0, 1, 0);
 
-                sV1.Rotate(r1 * scale, yVec);
-                sV2.Rotate(r2 * scale, yVec);
+
+                if (beam.StartNode.RyBC == true)
+                {
+                    Vector3d sV1 = new Vector3d((X2 - X1), 0, Z2 - Z1);
+                    scale1 = 0;
+                    sV1.Rotate(r1 * scale1, yVec);
+                    v1 = v1 + sV1;
+                }
+                else
+                {
+                    Vector3d sV1 = new Vector3d((eP.X - sP.X), 0, eP.Z - sP.Z);
+                    sV1.Rotate(r1 * scale1, yVec);
+                    v1 = v1 + sV1;
+                }
+
+                if (beam.EndNode.RyBC == true)
+                {
+                    Vector3d sV2 = new Vector3d((X2 - X1), 0, Z2 - Z1);
+                    scale2 = 0;
+                    sV2.Rotate(r2 * scale2, yVec);
+                    v2 = v2 + sV2;
+                }
+                else
+                {
+                    Vector3d sV2 = new Vector3d((eP.X - sP.X), 0, eP.Z - sP.Z);
+                    sV2.Rotate(r2 * scale2, yVec);
+                    v2 = v2 + sV2;
+                }
+
 
                 List<Point3d> pts = new List<Point3d>() { sP, eP };
-                NurbsCurve nc = NurbsCurve.CreateHSpline(pts, sV1, sV2);
+                NurbsCurve nc = NurbsCurve.CreateHSpline(pts, v1, v2);
                 linelist3.Add(nc);
             }
             lineList = linelist3;

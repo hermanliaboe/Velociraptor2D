@@ -71,16 +71,16 @@ namespace FEM.Components
                     Node startNode = b.StartNode;
                     if (startNode.Point == sup.Point)
                     {
-                        startNode.ZBC = sup.Ty;
                         startNode.XBC = sup.Tx;
+                        startNode.ZBC = sup.Tz;
                         startNode.RyBC = sup.Ry;
                     }
 
                     Node endNode = b.EndNode;
                     if (endNode.Point == sup.Point)
                     {
-                        endNode.ZBC = sup.Ty;
                         endNode.XBC = sup.Tx;
+                        endNode.ZBC = sup.Tz    ;
                         endNode.RyBC = sup.Ry;
                     }
                 }                    
