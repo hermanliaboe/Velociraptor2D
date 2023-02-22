@@ -108,6 +108,7 @@ namespace FEM.Components
                     rhinoMatrix[i,j] = globalKsup[i,j];
                 }
             }
+
             
             
             List<NurbsCurve> lineList1 = new List<NurbsCurve>();
