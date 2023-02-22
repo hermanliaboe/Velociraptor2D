@@ -97,7 +97,7 @@ namespace FEM.Components
             //Usage of newmark
 
             double T = 5.0;
-            double dt = 0.1;
+            double dt = 0.01;
             double beta = 1 / 4;
             double gamma = 1 / 2;
 
@@ -105,7 +105,9 @@ namespace FEM.Components
             LA.Matrix<double> v0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
 
 
-            Newmark(beta, gamma, dt, globalMsup, globalKsup, supC, f0, d0,v0,T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
+            //Newmark(beta, gamma, dt, globalMsupC, globalKsup, supC, f0, d0,v0,T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
+            Newmark(beta, gamma, dt, consistentM, globalKsup, C, f0, d0, v0, T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
+
 
             Rhino.Geometry.Matrix rhinoMatrixK = new Rhino.Geometry.Matrix(dof, dof);
             for (int i = 0; i < globalKsup.RowCount; i++)
@@ -124,19 +126,19 @@ namespace FEM.Components
                 }
             }
             Rhino.Geometry.Matrix rhinoMatrixMcons = new Rhino.Geometry.Matrix(dof, dof);
-            for (int i = 0; i < globalMsupC.RowCount; i++)
+            for (int i = 0; i < consistentM.RowCount; i++)
             {
-                for (int j = 0; j < globalMsupC.ColumnCount; j++)
+                for (int j = 0; j < consistentM.ColumnCount; j++)
                 {
-                    rhinoMatrixMcons[i, j] = globalMsupC[i, j];
+                    rhinoMatrixMcons[i, j] = consistentM[i, j];
                 }
             }
             Rhino.Geometry.Matrix rhinoMatrixC = new Rhino.Geometry.Matrix(dof, dof);
-            for (int i = 0; i < supC.RowCount; i++)
+            for (int i = 0; i < C.RowCount; i++)
             {
-                for (int j = 0; j < supC.ColumnCount; j++)
+                for (int j = 0; j < C.ColumnCount; j++)
                 {
-                    rhinoMatrixC[i, j] = supC[i, j];
+                    rhinoMatrixC[i, j] = C[i, j];
                 }
             }
 
@@ -164,7 +166,6 @@ namespace FEM.Components
             var v = LA.Matrix<double>.Build.Dense(dof, ((int)(T / dt)), 0);
             var a = LA.Matrix<double>.Build.Dense(dof, ((int)(T / dt)), 0);
             LA.Matrix<double> fTime = LA.Matrix<double>.Build.Dense(dof, ((int)(T / dt)), 0);
-            var fZeros = LA.Matrix<double>.Build.Dense(dof, 1, 0);
 
 
             d.SetSubMatrix(0,dof, 0, 1, d0);
@@ -185,11 +186,11 @@ namespace FEM.Components
 
                 // solution step
                 // if force is a function of time, set F_n+1 to updated value (not f0)
-                fTime.SetSubMatrix(0,dof,n+1,1, fZeros);
+                //fTime.SetSubMatrix(0,dof,n+1,1, fZeros);
                 var fPrime = fTime.SubMatrix(0,dof, n+1, 1) - C.Multiply(vPred) - K.Multiply(dPred);
-                var Mprime = M + gamma * dt * C + beta * Math.Pow(dt, 2) * K;
-                LA.Matrix<double> MprimeInv = Mprime.Inverse();
-                a.SetSubMatrix(0,n + 1, MprimeInv.Multiply(fPrime));
+                var mPrime = M + gamma * dt * C + beta * Math.Pow(dt, 2) * K;
+                LA.Matrix<double> mPrimeInv = mPrime.Inverse();
+                a.SetSubMatrix(0,n + 1, mPrimeInv.Multiply(fPrime));
 
                 // connector step
                 d.SetSubMatrix(0, dof, n+1,1, dPred + beta * Math.Pow(dt, 2) * a.SubMatrix(0,dof,n+1,1));
