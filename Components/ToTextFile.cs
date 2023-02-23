@@ -48,7 +48,6 @@ namespace FEM.Components
         {
 
             DenseMatrix values = new DenseMatrix(1);
-            int node = 0;
             string filePath = "";
 
             DA.GetData(0, ref values);
@@ -58,13 +57,13 @@ namespace FEM.Components
             using (StreamWriter writer = new StreamWriter(filePath))
             {
                 // Loop through each row of the matrix
-                for (int i = 0; i < values.RowCount; i++)
+                for (int i = 0; i < values.ColumnCount; i++)
                 {
                     // Loop through each column of the matrix
-                    for (int j = 0; j < values.ColumnCount; j++)
+                    for (int j = 0; j < values.RowCount; j++)
                     {
                         // Write the value at the current row and column to the file
-                        writer.Write(values[i, j] + " ");
+                        writer.Write(values[j, i] + "   ");
                     }
                     // Move to the next line in the file
                     writer.WriteLine();
