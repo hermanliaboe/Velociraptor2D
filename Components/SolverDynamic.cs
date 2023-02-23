@@ -174,8 +174,8 @@ namespace FEM.Components
 
 
             // Initial calculation
-            LA.Matrix<double> Minv = M.Inverse();
-            var a0 = Minv.Multiply(f0 - C.Multiply(v0) - K.Multiply(d0));
+            LA.Matrix<double> mInv = M.Inverse();
+            var a0 = mInv.Multiply(f0 - C.Multiply(v0) - K.Multiply(d0));
             a.SetSubMatrix(0,dof,0,1, a0);
 
             for (int n = 0; n < d.ColumnCount-1; n++)
