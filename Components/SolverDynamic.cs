@@ -61,6 +61,7 @@ namespace FEM.Components
             pManager.AddGenericParameter("Velocity", "VeloMat", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("mass matric C# matrix","lumpedMass","",GH_ParamAccess.item);
             pManager.AddGenericParameter("consistent mass matrix C# matrix", "consMass", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Natural Frequencies [Hz]", "Natural Frequencies [Hz]", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -106,7 +107,12 @@ namespace FEM.Components
 
 
             Newmark(beta, gamma, dt, globalMsupC, globalKsup, supC, f0, d0,v0,T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
-            //Newmark(beta, gamma, dt, consistentM, globalKsup, C, f0, d0, v0, T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
+            var eigs = EigenValues(globalKsup, globalMsupC);
+            var natFreq = new List<double>();
+            for (int i = 0; i < eigs.ColumnCount; i++)
+            {
+                natFreq.Add(Math.Sqrt(eigs[0, i])/ (2 * Math.PI));
+            }
 
 
             Rhino.Geometry.Matrix rhinoMatrixK = new Rhino.Geometry.Matrix(dof, dof);
@@ -153,6 +159,7 @@ namespace FEM.Components
             DA.SetData(7, velocities);
             DA.SetData(8, globalMsup);
             DA.SetData(9, globalMsupC);
+            DA.SetDataList(10, natFreq);
         }
 
 
@@ -200,7 +207,27 @@ namespace FEM.Components
             displacements = d;
         }
 
-       
+        public LA.Matrix<double> EigenValues(LA.Matrix<double> K, LA.Matrix<double> M)
+        {
+            // Solve the generalized eigenvalue problemv
+            var factorizedM = M.QR();
+            var factorizedK = factorizedM.Solve(K);
+            var evd = factorizedK.Evd(LA.Symmetricity.Asymmetric);
+
+            // Extract the eigenvalues and eigenvectors
+            double[] ev = evd.EigenValues.Select(x => x.Real).ToArray();
+            LA.Matrix<double> V = evd.EigenVectors;
+            var W = LA.Matrix<double>.Build.Dense(1, ev.Length);
+            int i = 0;
+            foreach (double w in ev)
+            {
+                W[0, i] = w;
+                i++;
+            }
+            return W;
+        }
+
+
 
         /// <summary>
         /// Provides an Icon for the component.
