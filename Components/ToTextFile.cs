@@ -31,6 +31,7 @@ namespace FEM.Components
         {
             pManager.AddGenericParameter("Input", "inpt", "", GH_ParamAccess.item);
             pManager.AddTextParameter("FilePath", "path", "", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Write?", "w", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -49,26 +50,33 @@ namespace FEM.Components
 
             DenseMatrix values = new DenseMatrix(1);
             string filePath = "";
+            bool write = false;
 
             DA.GetData(0, ref values);
             DA.GetData(1, ref filePath);
+            DA.GetData(2, ref write);
 
-            // Open the file for writing
-            using (StreamWriter writer = new StreamWriter(filePath))
+
+            if (write)
             {
-                // Loop through each row of the matrix
-                for (int i = 0; i < values.ColumnCount; i++)
+                // Open the file for writing
+                using (StreamWriter writer = new StreamWriter(filePath))
                 {
-                    // Loop through each column of the matrix
-                    for (int j = 0; j < values.RowCount; j++)
+                    // Loop through each row of the matrix
+                    for (int i = 0; i < values.ColumnCount; i++)
                     {
-                        // Write the value at the current row and column to the file
-                        writer.Write(values[j, i] + "   ");
+                        // Loop through each column of the matrix
+                        for (int j = 0; j < values.RowCount; j++)
+                        {
+                            // Write the value at the current row and column to the file
+                            writer.Write(values[j, i] + "   ");
+                        }
+                        // Move to the next line in the file
+                        writer.WriteLine();
                     }
-                    // Move to the next line in the file
-                    writer.WriteLine();
                 }
             }
+            
 
         }
 
@@ -81,6 +89,7 @@ namespace FEM.Components
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
+               // return Resources
                 return null;
             }
         }
