@@ -98,8 +98,8 @@ namespace FEM.Components
 
             double T = 5.0;
             double dt = 0.01;
-            double beta = 1 / 4;
-            double gamma = 1 / 2;
+            double beta = 1.0 / 4.0;
+            double gamma = 1.0 / 2.0;
 
             LA.Matrix<double> d0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
             LA.Matrix<double> v0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
