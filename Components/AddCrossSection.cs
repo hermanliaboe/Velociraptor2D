@@ -24,10 +24,10 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("height","h","",GH_ParamAccess.item);
-            pManager.AddNumberParameter("width", "w", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("YoungsModulus", "E", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Density", "rho", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("height","h","",GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter("width", "w", "", GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter("YoungsModulus", "E", "", GH_ParamAccess.item, 210000);
+            pManager.AddNumberParameter("Density", "rho", "", GH_ParamAccess.item, 0.00000785);
         }
 
         /// <summary>
@@ -48,6 +48,7 @@ namespace FEM.Components
             double width = 0.0;
             double youngsMod = 0.0;
             double rho = 0.0;
+
             DA.GetData(0, ref height);
             DA.GetData(1, ref width);
             DA.GetData(2, ref youngsMod);
