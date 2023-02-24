@@ -43,7 +43,7 @@ namespace FEM.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Assembly","ass","",GH_ParamAccess.item);
-            pManager.AddGenericParameter("Scale", "Scale", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Scale", "Scale", "", GH_ParamAccess.item, 1.0);
         }
 
         /// <summary>
