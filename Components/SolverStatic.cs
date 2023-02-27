@@ -18,6 +18,7 @@ using Grasshopper.GUI;
 using MathNet.Numerics.Interpolation;
 using Grasshopper.Kernel.Geometry;
 using MathNet.Numerics.LinearAlgebra.Factorization;
+using System.Numerics;
 
 namespace FEM.Components
 {
@@ -167,28 +168,28 @@ namespace FEM.Components
                 if (beam.StartNode.RyBC == true)
                 {
                     Vector3d sV1 = new Vector3d((X2 - X1), 0, Z2 - Z1);
-                    scale1 = 0;
+                    //scale1 = 0;
                     sV1.Rotate(r1 * scale1, yVec);
                     v1 = v1 + sV1;
                 }
                 else
                 {
                     Vector3d sV1 = new Vector3d((eP.X - sP.X), 0, eP.Z - sP.Z);
-                    sV1.Rotate(r1 * scale1, yVec);
+                  //  sV1.Rotate(r1 * scale1, yVec);
                     v1 = v1 + sV1;
                 }
 
                 if (beam.EndNode.RyBC == true)
                 {
                     Vector3d sV2 = new Vector3d((X2 - X1), 0, Z2 - Z1);
-                    scale2 = 0;
+                    //scale2 = 0;
                     sV2.Rotate(r2 * scale2, yVec);
                     v2 = v2 + sV2;
                 }
                 else
                 {
                     Vector3d sV2 = new Vector3d((eP.X - sP.X), 0, eP.Z - sP.Z);
-                    sV2.Rotate(r2 * scale2, yVec);
+                   // sV2.Rotate(r2 * scale2, yVec);
                     v2 = v2 + sV2;
                 }
 
