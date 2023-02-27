@@ -90,7 +90,7 @@ namespace FEM.Components
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
                // return Resources
-                return Resources.txt__1_;
+                return Resources.txt;
             }
         }
 
