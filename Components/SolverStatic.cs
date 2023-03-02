@@ -60,6 +60,7 @@ namespace FEM.Components
             pManager.AddGenericParameter("displacements List", "", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("displacements Node z", "", "", GH_ParamAccess.list);
             pManager.AddCurveParameter("new lines", "lines", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Nodal Forces","","",GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -94,6 +95,7 @@ namespace FEM.Components
             LA.Matrix<double> forceVec = matrices.BuildForceVector(loads, dof);
 
             LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
+            LA.Matrix<double> nodalForces = globalK.Multiply(displacements);
 
             
             List<string> dispList = new List<string>();
@@ -103,14 +105,12 @@ namespace FEM.Components
                 dispList.Add(nodeDisp);
             }
 
-
             List<double> dispNode = new List<Double>();
             for (int i = 0; i < dof; i = i + 3)
             {
                 var nodeDisp =  displacements[i + 1, 0];
                 dispNode.Add(nodeDisp);
             }
-
 
             Rhino.Geometry.Matrix rhinoMatrix = new Rhino.Geometry.Matrix(dof, dof);
             for (int i = 0; i < globalKsup.RowCount; i++)
@@ -120,13 +120,9 @@ namespace FEM.Components
                     rhinoMatrix[i,j] = globalKsup[i,j];
                 }
             }
-
-            
             
             List<NurbsCurve> lineList1 = new List<NurbsCurve>();
             getNewGeometry(scale, displacements, elements, out lineList1);
-
-            
 
             //DA.SetData(0, item);
             DA.SetData(1, globalK);
@@ -136,7 +132,7 @@ namespace FEM.Components
             DA.SetDataList(5, dispList);
             DA.SetDataList(6, dispNode);
             DA.SetDataList(7, lineList1);
-            
+            DA.SetData(8, nodalForces);
         }
 
 

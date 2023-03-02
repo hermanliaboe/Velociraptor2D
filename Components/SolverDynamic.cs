@@ -51,17 +51,19 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("global K", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("global Ksup", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("force Vec", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter(" Lumped Mass matrix", "LumpMassMat", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("consistent Mass matrix", "ConsMassMat", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Damping matrix", "DampMat", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Displacements", "DispMat", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Velocity", "VeloMat", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("mass matric C# matrix","lumpedMass","",GH_ParamAccess.item);
-            pManager.AddGenericParameter("consistent mass matrix C# matrix", "consMass", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Natural Frequencies [Hz]", "Natural Frequencies [Hz]", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Global Stiffness Matrix", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Global Stiffness Matrix reduced", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Applied Force Vector", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Global Lumped Mass Matrix", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Global Lumped Mass Matrix reduced", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Global Consistent Mass Matrix", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Global Consistent Mass Matrix reduced", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Global Damping Matrix", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Global Damping Matrix reduced", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Displacements", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Velocity", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Nodal Forces", "", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Natural Frequencies [Hz]", "", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -86,13 +88,13 @@ namespace FEM.Components
             LA.Matrix<double> globalK = matrices.BuildGlobalK(dof, elements);
             LA.Matrix<double> globalKsup = matrices.BuildSupMat(dof, globalK, supports, nodes);
 
-            LA.Matrix<double> M = matrices.BuildGlobalM(dof, elements, true);
-            LA.Matrix<double> consistentM = matrices.BuildGlobalM(dof, elements, false);
-            LA.Matrix<double> globalMsup = matrices.BuildSupMat(dof, M, supports, nodes);   
-            LA.Matrix<double> globalMsupC = matrices.BuildSupMat(dof, consistentM, supports, nodes);
+            LA.Matrix<double> globalLumpedM = matrices.BuildGlobalM(dof, elements, true);
+            LA.Matrix<double> globalConsistentM = matrices.BuildGlobalM(dof, elements, false);
+            LA.Matrix<double> globalLumpedMsup = matrices.BuildSupMat(dof, globalLumpedM, supports, nodes);   
+            LA.Matrix<double> globalConsistentMsup = matrices.BuildSupMat(dof, globalConsistentM, supports, nodes);
 
-            LA.Matrix<double> C = matrices.BuildC(M,globalKsup,0.05,0.1,100);
-            LA.Matrix<double> supC = matrices.BuildSupMat(dof, C, supports, nodes);
+            LA.Matrix<double> globalC = matrices.BuildC(globalLumpedM,globalKsup,0.05,0.1,100);
+            LA.Matrix<double> supC = matrices.BuildSupMat(dof, globalC, supports, nodes);
             LA.Matrix<double> f0 = matrices.BuildForceVector(loads, dof);
            
             //Usage of newmark
@@ -106,60 +108,44 @@ namespace FEM.Components
             LA.Matrix<double> v0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
 
 
-            Newmark(beta, gamma, dt, globalMsupC, globalKsup, supC, f0, d0,v0,T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
-            var eigs = EigenValues(globalKsup, globalMsupC);
+            Newmark(beta, gamma, dt, globalConsistentMsup, globalKsup, supC, f0, d0,v0,T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
+            LA.Matrix<double> nodalForces = LA.Matrix<double>.Build.Dense(displacements.RowCount, displacements.ColumnCount);
+            for (int i = 0;i < displacements.ColumnCount; i++)
+            {
+                nodalForces.SetSubMatrix(0, i, globalK.Multiply(displacements.SubMatrix(0, dof, i, 1)));
+            }
+            
+            var eigs = EigenValues(globalKsup, globalConsistentMsup);
             var natFreq = new List<double>();
             for (int i = 0; i < eigs.ColumnCount; i++)
             {
                 natFreq.Add(Math.Sqrt(eigs[0, i])/ (2 * Math.PI));
             }
 
-
-            Rhino.Geometry.Matrix rhinoMatrixK = new Rhino.Geometry.Matrix(dof, dof);
-            for (int i = 0; i < globalKsup.RowCount; i++)
-            {
-                for (int j = 0; j < globalKsup.ColumnCount; j++)
-                {
-                    rhinoMatrixK[i, j] = globalKsup[i, j];
-                }
-            }
-            Rhino.Geometry.Matrix rhinoMatrixM = new Rhino.Geometry.Matrix(dof, dof);
-            for (int i = 0; i < globalMsup.RowCount; i++)
-            {
-                for (int j = 0; j < globalMsup.ColumnCount; j++)
-                {
-                    rhinoMatrixM[i, j] = globalMsup[i, j];
-                }
-            }
-            Rhino.Geometry.Matrix rhinoMatrixMcons = new Rhino.Geometry.Matrix(dof, dof);
-            for (int i = 0; i < globalMsupC.RowCount; i++)
-            {
-                for (int j = 0; j < globalMsupC.ColumnCount; j++)
-                {
-                    rhinoMatrixMcons[i, j] = globalMsupC[i, j];
-                }
-            }
-            Rhino.Geometry.Matrix rhinoMatrixC = new Rhino.Geometry.Matrix(dof, dof);
-            for (int i = 0; i < supC.RowCount; i++)
-            {
-                for (int j = 0; j < supC.ColumnCount; j++)
-                {
-                    rhinoMatrixC[i, j] = supC[i, j];
-                }
-            }
+            Rhino.Geometry.Matrix rhinoMatrixK = CreateRhinoMatrix(globalK);
+            Rhino.Geometry.Matrix rhinoMatrixKred = CreateRhinoMatrix(globalKsup);
+            Rhino.Geometry.Matrix rhinoMatrixAppF = CreateRhinoMatrix(f0);
+            Rhino.Geometry.Matrix rhinoMatrixLumpedM = CreateRhinoMatrix(globalLumpedM);
+            Rhino.Geometry.Matrix rhinoMatrixLumpedMred = CreateRhinoMatrix(globalLumpedMsup);
+            Rhino.Geometry.Matrix rhinoMatrixConsistentM = CreateRhinoMatrix(globalConsistentM);
+            Rhino.Geometry.Matrix rhinoMatrixConsistentMred = CreateRhinoMatrix(globalConsistentMsup);
+            Rhino.Geometry.Matrix rhinoMatrixC = CreateRhinoMatrix(globalC);
+            Rhino.Geometry.Matrix rhinoMatrixCred = CreateRhinoMatrix(supC);
 
       
-            DA.SetData(0, globalK);
-            DA.SetData(1, rhinoMatrixK);
-            DA.SetData(2, f0);
-            DA.SetData(3, rhinoMatrixM);
-            DA.SetData(4, rhinoMatrixMcons);
-            DA.SetData(5, rhinoMatrixC);
-            DA.SetData(6, displacements);
-            DA.SetData(7, velocities);
-            DA.SetData(8, globalMsup);
-            DA.SetData(9, globalMsupC);
-            DA.SetDataList(10, natFreq);
+            DA.SetData(0, rhinoMatrixK);
+            DA.SetData(1, rhinoMatrixKred);
+            DA.SetData(2, rhinoMatrixAppF);
+            DA.SetData(3, rhinoMatrixLumpedM);
+            DA.SetData(4, rhinoMatrixLumpedMred);
+            DA.SetData(5, rhinoMatrixConsistentM);
+            DA.SetData(6, rhinoMatrixConsistentMred);
+            DA.SetData(7, rhinoMatrixC);
+            DA.SetData(8, rhinoMatrixCred);
+            DA.SetData(9, displacements);
+            DA.SetData(10, velocities);
+            DA.SetData(11, nodalForces);
+            DA.SetDataList(12, natFreq);
         }
 
 
@@ -205,6 +191,19 @@ namespace FEM.Components
             }
             velocities = v;
             displacements = d;
+        }
+
+        public Rhino.Geometry.Matrix CreateRhinoMatrix(LA.Matrix<double> matrix)
+        {
+            Rhino.Geometry.Matrix rhinoMatrix = new Rhino.Geometry.Matrix(matrix.RowCount, matrix.ColumnCount);
+            for (int i = 0; i < matrix.RowCount; i++)
+            {
+                for (int j = 0; j < matrix.ColumnCount; j++)
+                {
+                    rhinoMatrix[i, j] = matrix[i, j];
+                }
+            }
+            return rhinoMatrix;
         }
 
         public LA.Matrix<double> EigenValues(LA.Matrix<double> K, LA.Matrix<double> M)
