@@ -19,6 +19,9 @@ using MathNet.Numerics.Interpolation;
 using Grasshopper.Kernel.Geometry;
 using MathNet.Numerics.LinearAlgebra.Factorization;
 using System.Numerics;
+using Grasshopper.Kernel.Types.Transforms;
+using static Rhino.Render.TextureGraphInfo;
+using System.Xml.Linq;
 
 namespace FEM.Components
 {
@@ -70,13 +73,14 @@ namespace FEM.Components
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
+
             Classes.Assembly model = new Classes.Assembly();
             double scale = 0.0;
 
             DA.GetData(0, ref model);
             DA.GetData(1, ref scale);
 
-
+            //Define input
             List<Load> loads = model.LoadList;
             List<BeamElement> elements = model.BeamList;
             List<Support> supports = model.SupportList;
@@ -95,9 +99,10 @@ namespace FEM.Components
             LA.Matrix<double> forceVec = matrices.BuildForceVector(loads, dof);
 
             LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
-            LA.Matrix<double> nodalForces = globalK.Multiply(displacements);
+            //LA.Matrix<double> nodalForces = globalK.Multiply(displacements);
 
-            
+            GetBeamForces(displacements, elements, out LA.Matrix<double> beamForces);
+
             List<string> dispList = new List<string>();
             for (int i = 0; i < dof; i=i+3)
             {
@@ -132,12 +137,45 @@ namespace FEM.Components
             DA.SetDataList(5, dispList);
             DA.SetDataList(6, dispNode);
             DA.SetDataList(7, lineList1);
-            DA.SetData(8, nodalForces);
+            DA.SetData(8, beamForces);
+
+            
+        }
+
+        void GetBeamForces(LA.Matrix<double> displacements, List<BeamElement> elements, out LA.Matrix<double> beamForces0)
+        {
+
+            int dof = 6;
+            int i = 3;
+            int j = 0;
+            LA.Matrix<double> beamDisp = LA.Matrix<double>.Build.Dense(dof, elements.Count);
+
+            foreach (BeamElement beam in elements)
+            {
+                LA.Matrix<double> beamDispEl = LA.Matrix<double>.Build.Dense(dof, 1);
+
+                int startId = beam.StartNode.GlobalID;
+                beamDispEl[0, 0] = displacements[startId * i, 0];
+                beamDispEl[1, 0] = displacements[startId * i + 1, 0];
+                beamDispEl[2, 0] = displacements[startId * i + 2, 0];
+
+                int endId = beam.EndNode.GlobalID;
+                beamDispEl[3, 0] = displacements[endId * i, 0];
+                beamDispEl[4, 0] = displacements[endId * i + 1, 0];
+                beamDispEl[5, 0] = displacements[endId * i + 2, 0];
+
+                Matrices vecT = new Matrices();
+                LA.Matrix<double> beamdispT = vecT.TransformVector(beamDispEl, beam.StartNode.Point.X, beam.EndNode.Point.X, beam.StartNode.Point.Z, beam.EndNode.Point.Z, beam.Length);
+                beamDisp.SetSubMatrix(0, dof, j, 1, beam.kel.Multiply(beamDispEl));
+                j++;
+            }
+
+            beamForces0 = beamDisp;
+
         }
 
 
-
-        void getNewGeometry(double scale, LA.Matrix<double> displacements, List<BeamElement> beams, out List<NurbsCurve> lineList)
+            void getNewGeometry(double scale, LA.Matrix<double> displacements, List<BeamElement> beams, out List<NurbsCurve> lineList)
         {
             List<Line> linelist2 = new List<Line>();
             List<NurbsCurve> linelist3 = new List<NurbsCurve>();

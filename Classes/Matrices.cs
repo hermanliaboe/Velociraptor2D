@@ -94,7 +94,6 @@ namespace FEM.Classes
         {
             int dof = 6;  //how many dof per element
 
-
             //gets length of element
             Node startNode = beam.StartNode;
             double z1 = startNode.Point.Z;
@@ -130,10 +129,14 @@ namespace FEM.Classes
             kEl[4, 0] = 0;    kEl[4, 1] = -eilB;kEl[4, 2] = eilC;  kEl[4, 3] = 0;     kEl[4, 4] = eilB;  kEl[4, 5] = eilC;
             kEl[5, 0] = 0;    kEl[5, 1] = -eilC;kEl[5, 2] = eilE;  kEl[5, 3] = 0;     kEl[5, 4] = eilC;  kEl[5, 5] = eilD;
 
+            beam.kel = kEl;
 
             //Creates T-matrix to adjust element to global axis
             LA.Matrix<double> kT = TransformMatrix(kEl, x1, x2, z1, z2, l);
+  
             return kT;
+            
+            
         }
 
         public LA.Matrix<double> TransformMatrix(LA.Matrix<double> matrix, double x1, double x2, double z1, double z2, double l)
@@ -156,6 +159,28 @@ namespace FEM.Classes
             return tmt;
 
         }
+        
+
+        public LA.Matrix<double> TransformVector(LA.Matrix<double> matrix, double x1, double x2, double z1, double z2, double l)
+        {
+            LA.Matrix<double> t = LA.Matrix<double>.Build.Dense(6, 6, 0);
+
+            double c = (x2 - x1) / l;
+            double s = (z2 - z1) / l;
+
+            t[0, 0] = c; t[0, 1] = s; t[0, 2] = 0; t[0, 3] = 0; t[0, 4] = 0; t[0, 5] = 0;
+            t[1, 0] = -s; t[1, 1] = c; t[1, 2] = 0; t[1, 3] = 0; t[1, 4] = 0; t[1, 5] = 0;
+            t[2, 0] = 0; t[2, 1] = 0; t[2, 2] = 1; t[2, 3] = 0; t[2, 4] = 0; t[2, 5] = 0;
+            t[3, 0] = 0; t[3, 1] = 0; t[3, 2] = 0; t[3, 3] = c; t[3, 4] = s; t[3, 5] = 0;
+            t[4, 0] = 0; t[4, 1] = 0; t[4, 2] = 0; t[4, 3] = -s; t[4, 4] = c; t[4, 5] = 0;
+            t[5, 0] = 0; t[5, 1] = 0; t[5, 2] = 0; t[5, 3] = 0; t[5, 4] = 0; t[5, 5] = 1;
+
+            LA.Matrix<double> tm = t.Multiply(matrix);
+            return tm;
+
+        }
+
+
 
         //Creates global K with supports ############################################################################
         public LA.Matrix<double> BuildGlobalKsup(int dof, LA.Matrix<double> globalK, List<Support> supports, List<Node> nodes)
