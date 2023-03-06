@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using LA = MathNet.Numerics.LinearAlgebra;
 
 namespace FEM.Classes
 {
@@ -20,6 +21,7 @@ namespace FEM.Classes
         public double Width;
         public double YoungsMod;
         public double Rho;
+        public LA.Matrix<double> kel;
 
         public BeamElement() { }
 

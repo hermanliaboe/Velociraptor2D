@@ -98,7 +98,6 @@ namespace FEM.Components
             LA.Matrix<double> f0 = matrices.BuildForceVector(loads, dof);
            
             //Usage of newmark
-
             double T = 5.0;
             double dt = 0.01;
             double beta = 1.0 / 4.0;
@@ -107,21 +106,21 @@ namespace FEM.Components
             LA.Matrix<double> d0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
             LA.Matrix<double> v0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
 
-
             Newmark(beta, gamma, dt, globalConsistentMsup, globalKsup, supC, f0, d0,v0,T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
-            LA.Matrix<double> nodalForces = LA.Matrix<double>.Build.Dense(displacements.RowCount, displacements.ColumnCount);
-            for (int i = 0;i < displacements.ColumnCount; i++)
-            {
-                nodalForces.SetSubMatrix(0, i, globalK.Multiply(displacements.SubMatrix(0, dof, i, 1)));
-            }
             
+
+
+            //Eigenvalues 
             var eigs = EigenValues(globalKsup, globalConsistentMsup);
             var natFreq = new List<double>();
             for (int i = 0; i < eigs.ColumnCount; i++)
             {
                 natFreq.Add(Math.Sqrt(eigs[0, i])/ (2 * Math.PI));
             }
+          
 
+
+            // Creation of RhinoMatrix
             Rhino.Geometry.Matrix rhinoMatrixK = CreateRhinoMatrix(globalK);
             Rhino.Geometry.Matrix rhinoMatrixKred = CreateRhinoMatrix(globalKsup);
             Rhino.Geometry.Matrix rhinoMatrixAppF = CreateRhinoMatrix(f0);
@@ -132,7 +131,10 @@ namespace FEM.Components
             Rhino.Geometry.Matrix rhinoMatrixC = CreateRhinoMatrix(globalC);
             Rhino.Geometry.Matrix rhinoMatrixCred = CreateRhinoMatrix(supC);
 
-      
+
+            //Nodal forces incoming:
+            GetBeamForces(displacements, elements, T, dt, out LA.Matrix<double> beamForces);
+
             DA.SetData(0, rhinoMatrixK);
             DA.SetData(1, rhinoMatrixKred);
             DA.SetData(2, rhinoMatrixAppF);
@@ -144,11 +146,11 @@ namespace FEM.Components
             DA.SetData(8, rhinoMatrixCred);
             DA.SetData(9, displacements);
             DA.SetData(10, velocities);
-            DA.SetData(11, nodalForces);
+            DA.SetData(11, beamForces);
             DA.SetDataList(12, natFreq);
         }
 
-
+        //Newmark function
         void Newmark(double beta, double gamma, double dt, LA.Matrix<double> M, LA.Matrix<double> K, LA.Matrix<double> C, 
            LA.Matrix<double> f0, LA.Matrix<double> d0, LA.Matrix<double> v0, double T, out LA.Matrix<double> displacements, 
            out LA.Matrix<double> velocities)
@@ -226,7 +228,39 @@ namespace FEM.Components
             return W;
         }
 
+        void GetBeamForces(LA.Matrix<double> displacements, List<BeamElement> elements, double T, double dt, out LA.Matrix<double> beamForces0)
+        {
+            int dof = 6;
+            int i = 3;
+            int j = 0;
+            int r = 0;
+            LA.Matrix<double> beamDisp = LA.Matrix<double>.Build.Dense(dof , elements.Count * ((int)(T / dt)));
 
+            for (int c = 0; c < displacements.ColumnCount ;c++)
+            {
+                
+                foreach (BeamElement beam in elements)
+                {
+                    LA.Matrix<double> beamDispEl = LA.Matrix<double>.Build.Dense(dof, 1);
+
+                    int startId = beam.StartNode.GlobalID;
+                    beamDispEl[0, 0] = displacements[startId * i, c];
+                    beamDispEl[1, 0] = displacements[startId * i + 1, c];
+                    beamDispEl[2, 0] = displacements[startId * i + 2, c];
+
+                    int endId = beam.EndNode.GlobalID;
+                    beamDispEl[3, 0] = displacements[endId * i, c];
+                    beamDispEl[4, 0] = displacements[endId * i + 1, c];
+                    beamDispEl[5, 0] = displacements[endId * i + 2, c];
+
+                    Matrices vecT = new Matrices();
+                    LA.Matrix<double> beamdispT = vecT.TransformVector(beamDispEl, beam.StartNode.Point.X, beam.EndNode.Point.X, beam.StartNode.Point.Z, beam.EndNode.Point.Z, beam.Length);
+                    beamDisp.SetSubMatrix(0, dof, j, 1, beam.kel.Multiply(beamDispEl));
+                    j++;
+                }
+            }
+            beamForces0 = beamDisp;
+        }
 
         /// <summary>
         /// Provides an Icon for the component.
