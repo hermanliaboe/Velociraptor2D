@@ -73,7 +73,7 @@ namespace FEM.Components
         /// to store data in output parameters.</param>
         protected override void SolveInstance(IGH_DataAccess DA)
         {
-
+            //Input
             Classes.Assembly model = new Classes.Assembly();
             double scale = 0.0;
 
@@ -86,21 +86,17 @@ namespace FEM.Components
             List<Support> supports = model.SupportList;
             List<Node> nodes = model.NodeList;
        
-
-
-
+            //Building matrices
             int dof = model.NodeList.Count*3;
-          
-         
-            Matrices matrices = new Matrices();
 
+            Matrices matrices = new Matrices();
             LA.Matrix<double> globalK = matrices.BuildGlobalK(dof, elements);
             LA.Matrix<double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
             LA.Matrix<double> forceVec = matrices.BuildForceVector(loads, dof);
 
             LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
-            //LA.Matrix<double> nodalForces = globalK.Multiply(displacements);
-
+      
+            //Calculation forces
             GetBeamForces(displacements, elements, out LA.Matrix<double> beamForces);
 
             List<string> dispList = new List<string>();
@@ -126,8 +122,11 @@ namespace FEM.Components
                 }
             }
             
+
+            //Drawing new geometry
             List<NurbsCurve> lineList1 = new List<NurbsCurve>();
             getNewGeometry(scale, displacements, elements, out lineList1);
+
 
             //DA.SetData(0, item);
             DA.SetData(1, globalK);
@@ -209,38 +208,13 @@ namespace FEM.Components
 
                 Vector3d yVec = new Vector3d(0, 1, 0);
 
-
-                if (beam.StartNode.RyBC == true)
-                {
-                    Vector3d sV1 = new Vector3d((X2 - X1), 0, Z2 - Z1);
-                    //scale1 = 0;
-                    sV1.Rotate(r1 * scale1, yVec);
-                    v1 = v1 + sV1;
-                }
-                else
-                {
-                    Vector3d sV1 = new Vector3d((eP.X - sP.X), 0, eP.Z - sP.Z);
-                  //  sV1.Rotate(r1 * scale1, yVec);
-                    v1 = v1 + sV1;
-                }
-
-                if (beam.EndNode.RyBC == true)
-                {
-                    Vector3d sV2 = new Vector3d((X2 - X1), 0, Z2 - Z1);
-                    //scale2 = 0;
-                    sV2.Rotate(r2 * scale2, yVec);
-                    v2 = v2 + sV2;
-                }
-                else
-                {
-                    Vector3d sV2 = new Vector3d((eP.X - sP.X), 0, eP.Z - sP.Z);
-                   // sV2.Rotate(r2 * scale2, yVec);
-                    v2 = v2 + sV2;
-                }
-
+                Vector3d sV1 = new Vector3d((X2 - X1), 0, Z2 - Z1);
+                Vector3d sV2 = new Vector3d((X2 - X1), 0, Z2 - Z1);
+                sV1.Rotate(r1 * scale1, yVec);
+                sV2.Rotate(r2 * scale2, yVec);
 
                 List<Point3d> pts = new List<Point3d>() { sP, eP };
-                NurbsCurve nc = NurbsCurve.CreateHSpline(pts, v1, v2);
+                NurbsCurve nc = NurbsCurve.CreateHSpline(pts, sV1, sV2);
                 linelist3.Add(nc);
             }
             lineList = linelist3;
