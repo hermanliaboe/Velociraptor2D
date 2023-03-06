@@ -159,7 +159,7 @@ namespace FEM.Classes
             return tmt;
 
         }
-
+        
 
         public LA.Matrix<double> TransformVector(LA.Matrix<double> matrix, double x1, double x2, double z1, double z2, double l)
         {
