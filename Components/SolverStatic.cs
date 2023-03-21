@@ -64,6 +64,7 @@ namespace FEM.Components
             pManager.AddGenericParameter("displacements Node z", "", "", GH_ParamAccess.list);
             pManager.AddCurveParameter("new lines", "lines", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("Nodal Forces","","",GH_ParamAccess.item);
+            pManager.AddMatrixParameter("Nodal Forces RM", "", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -127,6 +128,8 @@ namespace FEM.Components
             List<NurbsCurve> lineList1 = new List<NurbsCurve>();
             getNewGeometry(scale, displacements, elements, out lineList1);
 
+            Rhino.Geometry.Matrix beamForcesRM= CreateRhinoMatrix(beamForces);
+
 
             //DA.SetData(0, item);
             DA.SetData(1, globalK);
@@ -137,8 +140,9 @@ namespace FEM.Components
             DA.SetDataList(6, dispNode);
             DA.SetDataList(7, lineList1);
             DA.SetData(8, beamForces);
+            DA.SetData(9, beamForcesRM);
 
-            
+
         }
 
         void GetBeamForces(LA.Matrix<double> displacements, List<BeamElement> elements, out LA.Matrix<double> beamForces0)
@@ -165,7 +169,8 @@ namespace FEM.Components
 
                 Matrices vecT = new Matrices();
                 LA.Matrix<double> beamdispT = vecT.TransformVector(beamDispEl, beam.StartNode.Point.X, beam.EndNode.Point.X, beam.StartNode.Point.Z, beam.EndNode.Point.Z, beam.Length);
-                beamDisp.SetSubMatrix(0, dof, j, 1, beam.kel.Multiply(beamDispEl));
+
+                beamDisp.SetSubMatrix(0, dof, j, 1, beam.kel.Multiply(beamdispT));
                 j++;
             }
 
@@ -220,8 +225,19 @@ namespace FEM.Components
             lineList = linelist3;
         }
 
-            
 
+        public Rhino.Geometry.Matrix CreateRhinoMatrix(LA.Matrix<double> matrix)
+        {
+            Rhino.Geometry.Matrix rhinoMatrix = new Rhino.Geometry.Matrix(matrix.RowCount, matrix.ColumnCount);
+            for (int i = 0; i < matrix.RowCount; i++)
+            {
+                for (int j = 0; j < matrix.ColumnCount; j++)
+                {
+                    rhinoMatrix[i, j] = matrix[i, j];
+                }
+            }
+            return rhinoMatrix;
+        }
 
 
         /// <summary>
