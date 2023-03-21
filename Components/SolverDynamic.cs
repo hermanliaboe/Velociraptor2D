@@ -93,13 +93,13 @@ namespace FEM.Components
             LA.Matrix<double> globalLumpedMsup = matrices.BuildSupMat(dof, globalLumpedM, supports, nodes);   
             LA.Matrix<double> globalConsistentMsup = matrices.BuildSupMat(dof, globalConsistentM, supports, nodes);
 
-            LA.Matrix<double> globalC = matrices.BuildC(globalLumpedM,globalKsup,0.05,0.1,100);
+            LA.Matrix<double> globalC = matrices.BuildC(globalLumpedM,globalKsup,0.0,0.1,100);
             LA.Matrix<double> supC = matrices.BuildSupMat(dof, globalC, supports, nodes);
             LA.Matrix<double> f0 = matrices.BuildForceVector(loads, dof);
            
             //Usage of newmark
             double T = 5.0;
-            double dt = 0.01;
+            double dt = 0.001;
             double beta = 1.0 / 4.0;
             double gamma = 1.0 / 2.0;
 
