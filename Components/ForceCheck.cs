@@ -8,7 +8,8 @@ using MathNet.Numerics;
 using LA = MathNet.Numerics.LinearAlgebra;
 using FEM.Classes;
 using FEM.Properties;
-
+using System.Linq;
+using MathNet.Numerics.Integration;
 
 namespace FEM.Components
 {
@@ -30,7 +31,7 @@ namespace FEM.Components
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Nodal forces", "nodalForces", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("KarambaForces", "karambaForces", "", GH_ParamAccess.list);
+            pManager.AddNumberParameter("KarambaForces", "karambaForces", "Needs to by a flatten list of moments of all beams", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -38,10 +39,11 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
+
             pManager.AddNumberParameter("Error at each node", "errorNode", "", GH_ParamAccess.list);
             pManager.AddNumberParameter("Total Error", "errorTot", "", GH_ParamAccess.item);
 
-
+            pManager.AddNumberParameter("moment at each node, avarage", "momNode", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -59,26 +61,36 @@ namespace FEM.Components
             DA.GetDataList(1, karambaForces);
 
             List<double> errorNode = new List<double>();
-            double errorTor = 0;
+            double errorAvg = 0;
 
             List<double> M = new List<double>();
 
-            M.Add(nodalForces[2, 0]);
+            M.Add(nodalForces[2, 0] * 0.000001);
             for (int i = 1; i < nodalForces.ColumnCount; i++)
             {
-                double m = ((nodalForces[2, i - 1] + nodalForces[5, i]) / 2) * 0.000001;
+                double m = (nodalForces[5, i - 1]) * 0.000001;
                 M.Add(m);
             }
-            M.Add(nodalForces[5, -1]);
-
+            M.Add(nodalForces[5, nodalForces.ColumnCount-1] * 0.000001);
+            
 
             int j = 1;
-            for (int i = 0; i < M.Count; i++)
+            errorNode.Add(100 - Math.Abs(M[0]/ karambaForces[0]) *100);          
+            for (int i = 1; i < M.Count-1; i++)
             {
-                double eM = M[i];
-                double eN = karambaForces[j];
+                errorNode.Add(100 - Math.Abs(M[i] / karambaForces[j])*100);
+                j = j + 2;
             }
+            errorNode.Add(100 - Math.Abs(M[M.Count-1] / karambaForces[karambaForces.Count-1])*100);
+            
 
+
+            errorAvg = errorNode.Average();
+
+            
+            DA.SetDataList(0, errorNode);
+            DA.SetData(1, errorAvg);
+            DA.SetDataList(2, M);
 
         }
 

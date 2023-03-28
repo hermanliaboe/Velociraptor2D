@@ -174,7 +174,7 @@ namespace FEM.Classes
             t[3, 0] = 0; t[3, 1] = 0; t[3, 2] = 0; t[3, 3] = c; t[3, 4] = s; t[3, 5] = 0;
             t[4, 0] = 0; t[4, 1] = 0; t[4, 2] = 0; t[4, 3] = -s; t[4, 4] = c; t[4, 5] = 0;
             t[5, 0] = 0; t[5, 1] = 0; t[5, 2] = 0; t[5, 3] = 0; t[5, 4] = 0; t[5, 5] = 1;
-            t = t.Inverse();
+            
             LA.Matrix<double> tm = t.Multiply(matrix);
             return tm;
 
