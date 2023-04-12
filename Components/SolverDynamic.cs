@@ -210,7 +210,61 @@ namespace FEM.Components
 
         public LA.Matrix<double> EigenValues(LA.Matrix<double> K, LA.Matrix<double> M)
         {
-            // Solve the generalized eigenvalue problemv
+            
+            for (int j = 0; j < K.RowCount; j++)
+            {
+                LA.Vector<double> Ms = M.Row(j);
+                LA.Vector<double> Ks = K.Row(j);
+
+                double Mss = Ms.Sum();
+                double Kss = Ks.Sum();
+
+                if (Mss== 1)
+                {
+                    K = K.RemoveRow(j);
+                    K = K.RemoveColumn(j);
+                    M = M.RemoveRow(j);
+                    M = M.RemoveColumn(j);
+                }
+            }
+            
+            
+            LA.Matrix<double> supMatrix = K.Clone();
+            foreach (Support support in supports)
+            {
+                foreach (Node node in nodes)
+                {
+
+                    if (support.Point == node.Point)
+                    {
+                        LA.Matrix<double> col = LA.Matrix<double>.Build.Dense(dof, 1, 0);
+                        LA.Matrix<double> row = LA.Matrix<double>.Build.Dense(1, dof, 0);
+                        int idN = node.GlobalID;
+
+
+                        if (support.Tx == true)
+                        {
+                            supMatrix.SetSubMatrix(idN * 3, 0, row);
+                            supMatrix.SetSubMatrix(0, idN * 3, col);
+                            supMatrix[idN * 3, idN * 3] = 1;
+                        }
+                        if (support.Tz == true)
+                        {
+                            supMatrix.SetSubMatrix(idN * 3 + 1, 0, row);
+                            supMatrix.SetSubMatrix(0, idN * 3 + 1, col);
+                            supMatrix[idN * 3 + 1, idN * 3 + 1] = 1;
+                        }
+                        if (support.Ry == true)
+                        {
+                            supMatrix.SetSubMatrix(idN * 3 + 2, 0, row);
+                            supMatrix.SetSubMatrix(0, idN * 3 + 2, col);
+                            supMatrix[idN * 3 + 2, idN * 3 + 2] = 1;
+                        }
+                    }
+                }
+            }
+
+            // Solve the generalized eigenvalue problem
             var factorizedM = M.QR();
             var factorizedK = factorizedM.Solve(K);
             var evd = factorizedK.Evd(LA.Symmetricity.Asymmetric);

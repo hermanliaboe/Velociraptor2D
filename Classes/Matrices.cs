@@ -348,10 +348,6 @@ namespace FEM.Classes
 
         public LA.Matrix<double> BuildC(LA.Matrix<double> M, LA.Matrix<double> K, double zeta, double wi, double wj)
         {
-            LA.Matrix<double> W = EigenValue(K, M);
-            //double wi = W[0, w1];
-            //double wj = W[0, w2];
-
             double a0 = zeta * (2*wi * wj) / (wi + wj);
             double a1 = zeta *(2) / (wi + wj);
 
@@ -360,13 +356,16 @@ namespace FEM.Classes
             return C;
         }
 
-
+        /*
         public LA.Matrix<double> EigenValue(LA.Matrix<double> K, LA.Matrix<double> M)
         {
-            // Solve the generalized eigenvalue problemv
+            // Solve the generalized eigenvalue problem
+            //QR() gets full matrix return triangle matrix (as gauss elimination), Evd gets eigenvalues
             var factorizedM = M.QR();
             var factorizedK = factorizedM.Solve(K);
             var evd = factorizedK.Evd(LA.Symmetricity.Asymmetric);
+
+            
 
             // Extract the eigenvalues and eigenvectors
             double[] ev = evd.EigenValues.Select(x => x.Real).ToArray();
@@ -380,8 +379,8 @@ namespace FEM.Classes
             }
             return W;
         }
-
-
+        */
+        
 
         //Creates global lumped mass matrix #############################################################################
         //public LA.Matrix<double> BuildMassMatrix(int dof, List<BeamElement> beams)
