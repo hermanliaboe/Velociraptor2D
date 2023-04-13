@@ -210,7 +210,8 @@ namespace FEM.Components
 
         public LA.Matrix<double> EigenValues(LA.Matrix<double> K, LA.Matrix<double> M)
         {
-            
+            /*
+             * int dof, List<Support> supports, List<Node> nodes
             for (int j = 0; j < K.RowCount; j++)
             {
                 LA.Vector<double> Ms = M.Row(j);
@@ -263,7 +264,7 @@ namespace FEM.Components
                     }
                 }
             }
-
+            */
             // Solve the generalized eigenvalue problem
             var factorizedM = M.QR();
             var factorizedK = factorizedM.Solve(K);
