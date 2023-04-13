@@ -72,8 +72,8 @@ namespace FEM.Components
                 M.Add(m);
             }
             M.Add(nodalForces[5, nodalForces.ColumnCount-1] * 0.000001);
-            
 
+            /*
             int j = 1;
             errorNode.Add(100 - Math.Abs(M[0]/ karambaForces[0]) *100);          
             for (int i = 1; i < M.Count-1; i++)
@@ -86,7 +86,8 @@ namespace FEM.Components
 
 
             errorAvg = errorNode.Average();
-
+            */
+          
             
             DA.SetDataList(0, errorNode);
             DA.SetData(1, errorAvg);
