@@ -24,8 +24,8 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddLineParameter("Lines", "ls", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("CrossSection", "cs","",GH_ParamAccess.item) ;
+            pManager.AddLineParameter("Lines", "Lines", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("CrossSection", "C-S","",GH_ParamAccess.item) ;
         }
 
         /// <summary>
@@ -33,8 +33,8 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Elements","els","", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Nodes","ns","", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Elements","Elem","", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Nodes", "Nodes", "", GH_ParamAccess.list);
         }
 
         /// <summary>

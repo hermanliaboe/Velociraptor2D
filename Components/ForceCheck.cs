@@ -30,8 +30,8 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Nodal forces", "nodalForces", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("KarambaForces", "karambaForces", "Needs to by a flatten list of moments of all beams", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Beam forces", "BeamF", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("KarambaForces", "KarambaF", "Needs to by a flatten list of moments of all beams", GH_ParamAccess.list);
         }
 
         /// <summary>

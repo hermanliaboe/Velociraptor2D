@@ -24,7 +24,7 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddPointParameter("Point", "pt", "Add support point here", GH_ParamAccess.item);
+            pManager.AddPointParameter("Point", "Pt", "Add support point here", GH_ParamAccess.item);
             pManager.AddBooleanParameter("Tx", "Tx", "Is the support fixed for Tx?", GH_ParamAccess.item, true);
             pManager.AddBooleanParameter("Tz", "Tz", "Is the support fixed for Tz?", GH_ParamAccess.item, true);
             pManager.AddBooleanParameter("Ry", "Ry", "Is the support fixed for Ry?", GH_ParamAccess.item, true);
