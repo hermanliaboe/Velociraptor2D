@@ -98,8 +98,8 @@ namespace FEM.Components
             LA.Matrix<double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
             LA.Matrix<double> forceVec = matrices.BuildForceVector(loads, dof);
             LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
-            LA.Matrix<double> connectivityMatrix = matrices.CalculateConnectivityMatrix(nodes, elements);
-         
+            // LA.Matrix<double> connectivityMatrix = matrices.CalculateConnectivityMatrix(nodes, elements);
+
 
             //Calculation forces
             GetBeamForces(displacements, elements, out LA.Matrix<double> beamForces);
@@ -269,7 +269,7 @@ namespace FEM.Components
             }
             return rhinoMatrix;
         }
-        
+        /*
         public LA.Vector<double> CalculateNodalForces(LA.Matrix<double> globalStiffnessMatrix, LA.Matrix<double> nodalDisplacements, LA.Matrix<double> beamForces, LA.Matrix<double> connectivityMatrix)
         {
             int numNodes = connectivityMatrix.ColumnCount;
@@ -283,7 +283,7 @@ namespace FEM.Components
 
                     if (elementIndex != -1)
                     {
-                        LA.Matrix<double> elementDisplacements = nodalDisplacements.subma(3 * i, 6);
+                        LA.Matrix<double> elementDisplacements = nodalDisplacements.submatrix(3 * i, 6);
                         Vector<double> elementForces = globalStiffnessMatrix.SubMatrix(3 * i, 6, 3 * i, 6).Multiply(elementDisplacements);
                         Vector<double> elementNodeForces = elementForces.SubVector(0, 3);
 
@@ -319,7 +319,7 @@ namespace FEM.Components
 
             return nodalForces;
         }
-
+        */
         
 
 
