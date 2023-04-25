@@ -356,6 +356,45 @@ namespace FEM.Classes
             return C;
         }
 
+
+        public LA.Matrix<double> CalculateConnectivityMatrix(List<Node> nodes, List<BeamElement> beams)
+        {
+            int numNodes = nodes.Count;
+            LA.Matrix<double> connectivityMatrix = LA.Matrix<double>.Build.Dense(numNodes, numNodes);
+
+            foreach (BeamElement beam in beams)
+            {
+                int n1 = beam.StartNode.GlobalID;
+                int n2 = beam.EndNode.GlobalID;
+
+                connectivityMatrix[n1,n2] = 1;
+                connectivityMatrix[n2, n1] = 1;
+
+
+            }
+
+            return connectivityMatrix;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         /*
         public LA.Matrix<double> EigenValue(LA.Matrix<double> K, LA.Matrix<double> M)
         {
@@ -380,7 +419,7 @@ namespace FEM.Classes
             return W;
         }
         */
-        
+
 
         //Creates global lumped mass matrix #############################################################################
         //public LA.Matrix<double> BuildMassMatrix(int dof, List<BeamElement> beams)

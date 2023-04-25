@@ -29,10 +29,10 @@ namespace FEM.Components
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             //trying some stuff here
-            pManager.AddGenericParameter("Beams", "beams", "Input for all beams", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Supports", "sups", "Input for all supports", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Loads", "loads", "Input for all loads", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Nodes", "nodes", "Input for all nodes", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Beams", "Beams", "Input for all beams", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Supports", "Sups", "Input for all supports", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Loads", "Loads", "Input for all loads", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Nodes", "Nodes", "Input for all nodes", GH_ParamAccess.list);
 
         }
 
@@ -41,7 +41,7 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("Modell", "modell", "Assembled modell", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Modell", "Mod", "Assembled modell", GH_ParamAccess.item);
         }
 
         /// <summary>

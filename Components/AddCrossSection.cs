@@ -24,8 +24,8 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddNumberParameter("height","h","",GH_ParamAccess.item, 1);
-            pManager.AddNumberParameter("width", "w", "", GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter("Height","H","",GH_ParamAccess.item, 1);
+            pManager.AddNumberParameter("Width", "W", "", GH_ParamAccess.item, 1);
             pManager.AddNumberParameter("YoungsModulus", "E", "", GH_ParamAccess.item, 210000);
             pManager.AddNumberParameter("Density", "rho", "", GH_ParamAccess.item, 0.00000785);
         }
@@ -35,7 +35,7 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddGenericParameter("CrossSection", "cs", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("CrossSection", "CS", "", GH_ParamAccess.list);
         }
 
         /// <summary>

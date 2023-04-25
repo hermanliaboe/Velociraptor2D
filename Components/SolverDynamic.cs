@@ -42,7 +42,7 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Assembly", "ass", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Assembly", "Assemb.", "", GH_ParamAccess.item);
 
         }
 

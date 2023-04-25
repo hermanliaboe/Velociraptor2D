@@ -22,6 +22,7 @@ using System.Numerics;
 using Grasshopper.Kernel.Types.Transforms;
 using static Rhino.Render.TextureGraphInfo;
 using System.Xml.Linq;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace FEM.Components
 {
@@ -46,7 +47,7 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Assembly","ass","",GH_ParamAccess.item);
+            pManager.AddGenericParameter("Assembly","Assemb.","",GH_ParamAccess.item);
             pManager.AddNumberParameter("Scale", "Scale", "", GH_ParamAccess.item, 1.0);
         }
 
@@ -63,8 +64,10 @@ namespace FEM.Components
             pManager.AddGenericParameter("displacements List", "", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("displacements Node z", "", "", GH_ParamAccess.list);
             pManager.AddCurveParameter("new lines", "lines", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Nodal Forces","","",GH_ParamAccess.item);
-            pManager.AddMatrixParameter("Nodal Forces RM", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Beam Forces","","",GH_ParamAccess.item);
+            pManager.AddMatrixParameter("Beam Forces RM", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Nodal Forces1", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Nodal Forces2", "", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -89,16 +92,28 @@ namespace FEM.Components
        
             //Building matrices
             int dof = model.NodeList.Count*3;
-
+            
             Matrices matrices = new Matrices();
             LA.Matrix<double> globalK = matrices.BuildGlobalK(dof, elements);
             LA.Matrix<double> globalKsup = matrices.BuildGlobalKsup(dof, globalK, supports, nodes);
             LA.Matrix<double> forceVec = matrices.BuildForceVector(loads, dof);
-
             LA.Matrix<double> displacements = globalKsup.Solve(forceVec);
-      
+            // LA.Matrix<double> connectivityMatrix = matrices.CalculateConnectivityMatrix(nodes, elements);
+
+
             //Calculation forces
             GetBeamForces(displacements, elements, out LA.Matrix<double> beamForces);
+
+            //CalculateNodalForces(globalK, displacements, beamForces, connectivityMatrix);
+
+
+            LA.Matrix<double> nodeForces2 = globalK.Multiply(displacements);
+
+            //LA.Matrix<double> nodeForces2 = connectivityMatrix;
+            int nodeForces1 = 0;
+
+
+
 
             List<string> dispList = new List<string>();
             for (int i = 0; i < dof; i=i+3)
@@ -129,6 +144,7 @@ namespace FEM.Components
             getNewGeometry(scale, displacements, elements, out lineList1);
 
             Rhino.Geometry.Matrix beamForcesRM= CreateRhinoMatrix(beamForces);
+            Rhino.Geometry.Matrix nodeForces21 = CreateRhinoMatrix(nodeForces2);
 
 
             //DA.SetData(0, item);
@@ -141,6 +157,8 @@ namespace FEM.Components
             DA.SetDataList(7, lineList1);
             DA.SetData(8, beamForces);
             DA.SetData(9, beamForcesRM);
+            DA.SetData(10, nodeForces1);
+            DA.SetData(11, nodeForces21);
 
 
         }
@@ -238,6 +256,92 @@ namespace FEM.Components
             }
             return rhinoMatrix;
         }
+
+        public Rhino.Geometry.Matrix CreateRhinoMatrixINT(LA.Matrix<int> matrix)
+        {
+            Rhino.Geometry.Matrix rhinoMatrix = new Rhino.Geometry.Matrix(matrix.RowCount, matrix.ColumnCount);
+            for (int i = 0; i < matrix.RowCount; i++)
+            {
+                for (int j = 0; j < matrix.ColumnCount; j++)
+                {
+                    rhinoMatrix[i, j] = matrix[i, j];
+                }
+            }
+            return rhinoMatrix;
+        }
+        /*
+        public LA.Vector<double> CalculateNodalForces(LA.Matrix<double> globalStiffnessMatrix, LA.Matrix<double> nodalDisplacements, LA.Matrix<double> beamForces, LA.Matrix<double> connectivityMatrix)
+        {
+            int numNodes = connectivityMatrix.ColumnCount;
+            LA.Matrix<double> nodalForces = Matrix<double>.Build.Dense(numNodes * 3,1);
+
+            for (int i = 0; i < numNodes; i++)
+            {
+                for (int j = 0; j < numNodes; j++)
+                {
+                    double elementIndex = connectivityMatrix[i, j];
+
+                    if (elementIndex != -1)
+                    {
+                        LA.Matrix<double> elementDisplacements = nodalDisplacements.submatrix(3 * i, 6);
+                        Vector<double> elementForces = globalStiffnessMatrix.SubMatrix(3 * i, 6, 3 * i, 6).Multiply(elementDisplacements);
+                        Vector<double> elementNodeForces = elementForces.SubVector(0, 3);
+
+                        int[] elementNodeIndices = { i, i + 1 };
+                        Vector<double> elementNodeDisplacements = Vector<double>.Build.Dense(6);
+                        for (int k = 0; k < elementNodeIndices.Length; k++)
+                        {
+                            int nodeIndex = elementNodeIndices[k];
+                            int rowIndex = 3 * nodeIndex;
+
+                            for (int l = 0; l < 3; l++)
+                            {
+                                elementNodeDisplacements[3 * k + l] = nodalDisplacements[rowIndex + l];
+                            }
+                        }
+
+
+
+                        Vector<double> elementNodeForcesWithMoments = globalStiffnessMatrix.SubMatrix(3 * i, 6, Convert.ToInt32(3 * elementIndex), 6).Multiply(elementNodeDisplacements);
+                        elementNodeForcesWithMoments = LA.Vector<double>.Build.DenseOfArray(new double[] { elementNodeForcesWithMoments[0], elementNodeForcesWithMoments[1], elementNodeForcesWithMoments[2], 0, 0, 0 }).Add(elementForces.SubVector(0, 3));
+
+                        for (int k = 0; k < elementNodeIndices.Length; k++)
+                        {
+                            int nodeIndex = elementNodeIndices[k];
+                            int rowIndex = 3 * nodeIndex;
+                            nodalForces[rowIndex] += elementNodeForcesWithMoments[3 * k];
+                            nodalForces[rowIndex + 1] += elementNodeForcesWithMoments[3 * k + 1];
+                            nodalForces[rowIndex + 2] += elementNodeForcesWithMoments[3 * k + 2];
+                        }
+                    }
+                }
+            }
+
+            return nodalForces;
+        }
+        */
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         /// <summary>
