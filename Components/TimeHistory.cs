@@ -5,6 +5,7 @@ using LA = MathNet.Numerics.LinearAlgebra;
 using Grasshopper.Kernel;
 using Rhino.Geometry;
 using FEM.Classes;
+using FEM.Properties;
 
 namespace FEM.Components
 {
@@ -70,7 +71,7 @@ namespace FEM.Components
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return Resources.th;
             }
         }
 
