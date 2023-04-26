@@ -25,7 +25,7 @@ namespace FEM.Components
         protected override void RegisterInputParams(GH_InputParamManager pManager)
         {
             Vector3d nullVec = new Vector3d(0.0, 0.0, 0.0);
-            pManager.AddPointParameter("Point","pt","Attact point for force vector", GH_ParamAccess.item);
+            pManager.AddPointParameter("Point","Pt","Attact point for force vector", GH_ParamAccess.item);
             pManager.AddVectorParameter("Force Vec", "Fvec", "Vector to decribe sice and angle of force", GH_ParamAccess.item, nullVec);
             pManager.AddVectorParameter("Moment Vec", "Mvec", "Vector to decribe sice and rotation of moment", GH_ParamAccess.item, nullVec);
 

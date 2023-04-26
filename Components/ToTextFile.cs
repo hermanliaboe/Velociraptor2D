@@ -29,9 +29,9 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
-            pManager.AddGenericParameter("Input", "inpt", "", GH_ParamAccess.item);
-            pManager.AddTextParameter("FilePath", "path", "", GH_ParamAccess.item);
-            pManager.AddBooleanParameter("Write?", "w", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Input", "Input", "", GH_ParamAccess.item);
+            pManager.AddTextParameter("FilePath", "Path", "", GH_ParamAccess.item);
+            pManager.AddBooleanParameter("Write?", "W", "", GH_ParamAccess.item);
         }
 
         /// <summary>

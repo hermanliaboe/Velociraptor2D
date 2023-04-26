@@ -20,6 +20,7 @@ using System.Numerics;
 using System.Linq;
 using GH_IO;
 using MathNet.Numerics.LinearAlgebra.Complex;
+using MathNet.Numerics.LinearAlgebra;
 
 namespace FEM.Components
 {
@@ -66,7 +67,7 @@ namespace FEM.Components
             pManager.AddGenericParameter("Displacements", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Velocity", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Nodal Forces", "", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("Natural Frequencies [Hz]", "", "", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Natural Frequencies [Hz]", "", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -104,30 +105,42 @@ namespace FEM.Components
             LA.Matrix<double> globalLumpedMsup = matrices.BuildSupMat(dof, globalLumpedM, supports, nodes);   
             LA.Matrix<double> globalConsistentMsup = matrices.BuildSupMat(dof, globalConsistentM, supports, nodes);
 
-            LA.Matrix<double> globalC = matrices.BuildC(globalLumpedM,globalKsup,0.05,0.1,100);
+            LA.Matrix<double> globalC = matrices.BuildC(globalLumpedM,globalKsup,0.05,0.1,100.0);
             LA.Matrix<double> supC = matrices.BuildSupMat(dof, globalC, supports, nodes);
             LA.Matrix<double> f0 = matrices.BuildForceVector(loads, dof);
            
             //Usage of newmark
 
+       
+
             LA.Matrix<double> d0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
             LA.Matrix<double> v0 = LA.Matrix<double>.Build.Dense(dof, 1, 0);
 
-
             Newmark(beta, gamma, dt, globalConsistentMsup, globalKsup, supC, f0, d0,v0,T, out LA.Matrix<double> displacements, out LA.Matrix<double> velocities);
-            LA.Matrix<double> nodalForces = LA.Matrix<double>.Build.Dense(displacements.RowCount, displacements.ColumnCount);
-            for (int i = 0;i < displacements.ColumnCount; i++)
-            {
-                nodalForces.SetSubMatrix(0, i, globalK.Multiply(displacements.SubMatrix(0, dof, i, 1)));
-            }
-            
+
+
+
+            //Eigenvalues 
             var eigs = EigenValues(globalKsup, globalConsistentMsup);
-            var natFreq = new List<double>();
+            var natFreq = LA.Matrix<double>.Build.Dense(1, eigs.ColumnCount, 0);
+            // Sort the natFreq matrix from smallest to largest using an array
+
+
             for (int i = 0; i < eigs.ColumnCount; i++)
             {
-                natFreq.Add(Math.Sqrt(eigs[0, i])/ (2 * Math.PI));
+                natFreq[0, i] = Math.Sqrt(eigs[0, i]);
             }
 
+            var sortedNatFreqArray = natFreq.ToRowMajorArray();
+            Array.Sort(sortedNatFreqArray);
+
+            // Convert the sorted array back into a MathNet.Numerics.LinearAlgebra.Matrix<double>
+            var sortedNatFreqMatrix = Matrix<double>.Build.Dense(1, sortedNatFreqArray.Length);
+            sortedNatFreqMatrix.SetRow(0, sortedNatFreqArray);
+
+
+
+            // Creation of RhinoMatrix
             Rhino.Geometry.Matrix rhinoMatrixK = CreateRhinoMatrix(globalK);
             Rhino.Geometry.Matrix rhinoMatrixKred = CreateRhinoMatrix(globalKsup);
             Rhino.Geometry.Matrix rhinoMatrixAppF = CreateRhinoMatrix(f0);
@@ -137,8 +150,13 @@ namespace FEM.Components
             Rhino.Geometry.Matrix rhinoMatrixConsistentMred = CreateRhinoMatrix(globalConsistentMsup);
             Rhino.Geometry.Matrix rhinoMatrixC = CreateRhinoMatrix(globalC);
             Rhino.Geometry.Matrix rhinoMatrixCred = CreateRhinoMatrix(supC);
+            Rhino.Geometry.Matrix rhinoMatrixSortedNatFreq = CreateRhinoMatrix(sortedNatFreqMatrix);
 
-      
+
+
+            //Nodal forces incoming:
+            GetBeamForces(displacements, elements, T, dt, out LA.Matrix<double> beamForces);
+
             DA.SetData(0, rhinoMatrixK);
             DA.SetData(1, rhinoMatrixKred);
             DA.SetData(2, rhinoMatrixAppF);
@@ -150,11 +168,11 @@ namespace FEM.Components
             DA.SetData(8, rhinoMatrixCred);
             DA.SetData(9, displacements);
             DA.SetData(10, velocities);
-            DA.SetData(11, nodalForces);
-            DA.SetDataList(12, natFreq);
+            DA.SetData(11, beamForces);
+            DA.SetData(12, rhinoMatrixSortedNatFreq);
         }
 
-
+        //Newmark function
         void Newmark(double beta, double gamma, double dt, LA.Matrix<double> M, LA.Matrix<double> K, LA.Matrix<double> C, 
            LA.Matrix<double> f0, LA.Matrix<double> d0, LA.Matrix<double> v0, double T, out LA.Matrix<double> displacements, 
            out LA.Matrix<double> velocities)
@@ -214,7 +232,62 @@ namespace FEM.Components
 
         public LA.Matrix<double> EigenValues(LA.Matrix<double> K, LA.Matrix<double> M)
         {
-            // Solve the generalized eigenvalue problemv
+            /*
+             * int dof, List<Support> supports, List<Node> nodes
+            for (int j = 0; j < K.RowCount; j++)
+            {
+                LA.Vector<double> Ms = M.Row(j);
+                LA.Vector<double> Ks = K.Row(j);
+
+                double Mss = Ms.Sum();
+                double Kss = Ks.Sum();
+
+                if (Mss== 1)
+                {
+                    K = K.RemoveRow(j);
+                    K = K.RemoveColumn(j);
+                    M = M.RemoveRow(j);
+                    M = M.RemoveColumn(j);
+                }
+            }
+            
+            
+            LA.Matrix<double> supMatrix = K.Clone();
+            foreach (Support support in supports)
+            {
+                foreach (Node node in nodes)
+                {
+
+                    if (support.Point == node.Point)
+                    {
+                        LA.Matrix<double> col = LA.Matrix<double>.Build.Dense(dof, 1, 0);
+                        LA.Matrix<double> row = LA.Matrix<double>.Build.Dense(1, dof, 0);
+                        int idN = node.GlobalID;
+
+
+                        if (support.Tx == true)
+                        {
+                            supMatrix.SetSubMatrix(idN * 3, 0, row);
+                            supMatrix.SetSubMatrix(0, idN * 3, col);
+                            supMatrix[idN * 3, idN * 3] = 1;
+                        }
+                        if (support.Tz == true)
+                        {
+                            supMatrix.SetSubMatrix(idN * 3 + 1, 0, row);
+                            supMatrix.SetSubMatrix(0, idN * 3 + 1, col);
+                            supMatrix[idN * 3 + 1, idN * 3 + 1] = 1;
+                        }
+                        if (support.Ry == true)
+                        {
+                            supMatrix.SetSubMatrix(idN * 3 + 2, 0, row);
+                            supMatrix.SetSubMatrix(0, idN * 3 + 2, col);
+                            supMatrix[idN * 3 + 2, idN * 3 + 2] = 1;
+                        }
+                    }
+                }
+            }
+            */
+            // Solve the generalized eigenvalue problem
             var factorizedM = M.QR();
             var factorizedK = factorizedM.Solve(K);
             var evd = factorizedK.Evd(LA.Symmetricity.Asymmetric);
@@ -232,7 +305,39 @@ namespace FEM.Components
             return W;
         }
 
+        void GetBeamForces(LA.Matrix<double> displacements, List<BeamElement> elements, double T, double dt, out LA.Matrix<double> beamForces0)
+        {
+            int dof = 6;
+            int i = 3;
+            int j = 0;
+            int r = 0;
+            LA.Matrix<double> beamDisp = LA.Matrix<double>.Build.Dense(dof , elements.Count * ((int)(T / dt)));
 
+            for (int c = 0; c < displacements.ColumnCount ;c++)
+            {
+                
+                foreach (BeamElement beam in elements)
+                {
+                    LA.Matrix<double> beamDispEl = LA.Matrix<double>.Build.Dense(dof, 1);
+
+                    int startId = beam.StartNode.GlobalID;
+                    beamDispEl[0, 0] = displacements[startId * i, c];
+                    beamDispEl[1, 0] = displacements[startId * i + 1, c];
+                    beamDispEl[2, 0] = displacements[startId * i + 2, c];
+
+                    int endId = beam.EndNode.GlobalID;
+                    beamDispEl[3, 0] = displacements[endId * i, c];
+                    beamDispEl[4, 0] = displacements[endId * i + 1, c];
+                    beamDispEl[5, 0] = displacements[endId * i + 2, c];
+
+                    Matrices vecT = new Matrices();
+                    LA.Matrix<double> beamdispT = vecT.TransformVector(beamDispEl, beam.StartNode.Point.X, beam.EndNode.Point.X, beam.StartNode.Point.Z, beam.EndNode.Point.Z, beam.Length);
+                    beamDisp.SetSubMatrix(0, dof, j, 1, beam.kel.Multiply(beamDispEl));
+                    j++;
+                }
+            }
+            beamForces0 = beamDisp;
+        }
 
         /// <summary>
         /// Provides an Icon for the component.
