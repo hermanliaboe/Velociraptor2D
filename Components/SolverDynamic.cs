@@ -66,7 +66,7 @@ namespace FEM.Components
             pManager.AddGenericParameter("Global Damping Matrix reduced", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Displacements", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Velocity", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Nodal Forces", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Beam Forces", "", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("Natural Frequencies [Hz]", "", "", GH_ParamAccess.item);
         }
 
