@@ -56,18 +56,17 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("item","item","item",GH_ParamAccess.item);
-            pManager.AddGenericParameter("global K","","",GH_ParamAccess.item);
-            pManager.AddGenericParameter("global Ksup", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("force Vec", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("displacements Vec", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("displacements List", "", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("displacements Node z", "", "", GH_ParamAccess.list);
-            pManager.AddCurveParameter("new lines", "lines", "", GH_ParamAccess.list);
+            pManager.AddNumberParameter("Item","item","item",GH_ParamAccess.item);
+            pManager.AddGenericParameter("Global K","","",GH_ParamAccess.item);
+            pManager.AddGenericParameter("Global Ksup", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Force Vec", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Displacements Vec", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Displacements List", "", "", GH_ParamAccess.list);
+            pManager.AddGenericParameter("Displacements Node z", "", "", GH_ParamAccess.list);
+            pManager.AddCurveParameter("New lines", "lines", "", GH_ParamAccess.list);
              pManager.AddGenericParameter("Beam Forces","","",GH_ParamAccess.item);
             pManager.AddMatrixParameter("Beam Forces RM", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Nodal Forces1", "", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("Nodal Forces2", "", "", GH_ParamAccess.item);
+            pManager.AddGenericParameter("Nodal Forces RM", "", "", GH_ParamAccess.item);
         }
 
         /// <summary>
@@ -109,8 +108,6 @@ namespace FEM.Components
 
             LA.Matrix<double> nodeForces2 = globalK.Multiply(displacements);
 
-            //LA.Matrix<double> nodeForces2 = connectivityMatrix;
-            int nodeForces1 = 0;
 
 
 
@@ -144,7 +141,7 @@ namespace FEM.Components
             getNewGeometry(scale, displacements, elements, out lineList1);
 
             Rhino.Geometry.Matrix beamForcesRM= CreateRhinoMatrix(beamForces);
-            Rhino.Geometry.Matrix nodeForces21 = CreateRhinoMatrix(nodeForces2);
+            Rhino.Geometry.Matrix nodeForcesRM = CreateRhinoMatrix(nodeForces2);
 
 
             //DA.SetData(0, item);
@@ -157,8 +154,7 @@ namespace FEM.Components
             DA.SetDataList(7, lineList1);
             DA.SetData(8, beamForces);
             DA.SetData(9, beamForcesRM);
-            DA.SetData(10, nodeForces1);
-            DA.SetData(11, nodeForces21);
+            DA.SetData(10, nodeForcesRM);
 
 
         }

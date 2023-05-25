@@ -29,8 +29,9 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
+            List<double> l0 = new List<double>();
             pManager.AddGenericParameter("Beam forces", "BeamF", "", GH_ParamAccess.item);
-            pManager.AddGenericParameter("My - Kara", "My-Kara", "", GH_ParamAccess.list);
+            pManager.AddNumberParameter("My - Kara", "My-Kara", "", GH_ParamAccess.list, l0);
         }
 
         /// <summary>
@@ -57,7 +58,7 @@ namespace FEM.Components
 
             List<double> fBeam = new List<double>();
 
-            for (int i = 0; i < myK.Count /2; i++)
+            for (int i = 0; i < bfV.ColumnCount; i++)
             {
                 fBeam.Add(errorFunc(Math.Round(bfV[  2, i], 6), Math.Round(myK[i * 2] * 1000000, 6)));
                 fBeam.Add(errorFunc(Math.Round(bfV[  5, i], 6), Math.Round(myK[i * 2 +1] * 1000000, 6)));
@@ -124,7 +125,7 @@ namespace FEM.Components
             {
                 //You can add image files to your project resources and access them like this:
                 // return Resources.IconForThisComponent;
-                return null;
+                return Resources.checky;
             }
         }
 
