@@ -9,7 +9,6 @@ using LA = MathNet.Numerics.LinearAlgebra;
 using FEM.Classes;
 using FEM.Properties;
 using System.Linq;
-using MathNet.Numerics.Integration;
 
 namespace FEM.Components
 {
@@ -31,7 +30,7 @@ namespace FEM.Components
         protected override void RegisterInputParams(GH_Component.GH_InputParamManager pManager)
         {
             pManager.AddGenericParameter("Beam forces", "BeamF", "", GH_ParamAccess.item);
-            pManager.AddNumberParameter("KarambaForces", "KarambaF", "Needs to by a flatten list of moments of all beams", GH_ParamAccess.list);
+            pManager.AddGenericParameter("My - Kara", "My-Kara", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -39,11 +38,7 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-
-            pManager.AddNumberParameter("Error at each node", "errorNode", "", GH_ParamAccess.list);
-            pManager.AddNumberParameter("Total Error", "errorTot", "", GH_ParamAccess.item);
-
-            pManager.AddNumberParameter("moment at each node, avarage", "momNode", "", GH_ParamAccess.list);
+            pManager.AddNumberParameter("error, avarage", "momNode", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -53,14 +48,27 @@ namespace FEM.Components
         protected override void SolveInstance(IGH_DataAccess DA)
         {
             //Input
-            DenseMatrix nodalForces = new DenseMatrix(1);
-            List<Double> karambaForces = new List<Double>();   
-           
 
-            DA.GetData(0, ref nodalForces);
-            DA.GetDataList(1, karambaForces);
+            LA.Double.DenseMatrix bfV = new LA.Double.DenseMatrix(2);
+            List<double> myK = new List<double>();
+            
+            DA.GetData(0, ref bfV);
+            DA.GetDataList(1, myK);
 
-            List<double> errorNode = new List<double>();
+            List<double> fBeam = new List<double>();
+
+            for (int i = 0; i < myK.Count /2; i++)
+            {
+                fBeam.Add(errorFunc(Math.Round(bfV[  2, i], 6), Math.Round(myK[i * 2] * 1000000, 6)));
+                fBeam.Add(errorFunc(Math.Round(bfV[  5, i], 6), Math.Round(myK[i * 2 +1] * 1000000, 6)));
+
+
+            }
+
+            Double error = fBeam.Sum() / fBeam.Count;
+
+            /*
+                    List<double> errorNode = new List<double>();
             double errorAvg = 0;
 
             List<double> M = new List<double>();
@@ -73,7 +81,7 @@ namespace FEM.Components
             }
             M.Add(nodalForces[5, nodalForces.ColumnCount-1] * 0.000001);
 
-            /*
+            
             int j = 1;
             errorNode.Add(100 - Math.Abs(M[0]/ karambaForces[0]) *100);          
             for (int i = 1; i < M.Count-1; i++)
@@ -87,12 +95,24 @@ namespace FEM.Components
 
             errorAvg = errorNode.Average();
             */
-          
-            
-            DA.SetDataList(0, errorNode);
-            DA.SetData(1, errorAvg);
-            DA.SetDataList(2, M);
 
+
+            DA.SetData(0, error);
+
+
+
+        }
+
+        public double errorFunc(double V, double K)
+        {
+            double error = 0.0;
+
+            V += 0.00000001;
+            K += 0.00000001;
+            //double error = 0.0;
+            error = Math.Round(100.0 * Math.Abs((Math.Abs(V) - Math.Abs(K)) / Math.Abs(V)), 6);
+
+            return error;
         }
 
         /// <summary>
