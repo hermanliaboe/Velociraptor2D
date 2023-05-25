@@ -103,6 +103,16 @@ namespace FEM.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        public static System.Drawing.Bitmap checky {
+            get {
+                object obj = ResourceManager.GetObject("checky", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         public static System.Drawing.Bitmap crosssec {
             get {
                 object obj = ResourceManager.GetObject("crosssec", resourceCulture);
