@@ -180,7 +180,15 @@ namespace FEM.Classes
 
         }
 
-
+        public List<double> GetForceList(LA.Matrix<double> forces)
+        {
+            List<double> Forcelist = new List<double>();
+            for (int i = 0; i < forces.RowCount; i++)
+            {
+                Forcelist.Add(forces[i, 0]);
+            }
+            return Forcelist;
+        }
 
         //Creates global K with supports ############################################################################
         public LA.Matrix<double> BuildGlobalKsup(int dof, LA.Matrix<double> globalK, List<Support> supports, List<Node> nodes)

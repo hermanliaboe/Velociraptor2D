@@ -22,6 +22,7 @@ namespace FEM.Classes
         public double YoungsMod;
         public double Rho;
         public LA.Matrix<double> kel;
+        public List<double> ForceList;
 
         public BeamElement() { }
 

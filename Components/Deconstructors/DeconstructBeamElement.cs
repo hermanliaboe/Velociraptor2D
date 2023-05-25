@@ -41,6 +41,7 @@ namespace FEM.Components.Deconstructors
             pManager.AddNumberParameter("YoungsMod", "E", "", GH_ParamAccess.item);
             pManager.AddNumberParameter("Length","L","",GH_ParamAccess.item);
             pManager.AddNumberParameter("Material density", "rho", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("Forces", "F", "", GH_ParamAccess.list);
         }
 
         /// <summary>
@@ -61,6 +62,7 @@ namespace FEM.Components.Deconstructors
             DA.SetData(6, beam.YoungsMod);
             DA.SetData(7, beam.Length);
             DA.SetData(8, beam.Rho);
+            DA.SetDataList(9, beam.ForceList);
         }
 
         /// <summary>

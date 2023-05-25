@@ -64,7 +64,7 @@ namespace FEM.Components
             pManager.AddGenericParameter("displacements List", "", "", GH_ParamAccess.list);
             pManager.AddGenericParameter("displacements Node z", "", "", GH_ParamAccess.list);
             pManager.AddCurveParameter("new lines", "lines", "", GH_ParamAccess.list);
-            pManager.AddGenericParameter("Beam Forces","","",GH_ParamAccess.item);
+             pManager.AddGenericParameter("Beam Forces","","",GH_ParamAccess.item);
             pManager.AddMatrixParameter("Beam Forces RM", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Nodal Forces1", "", "", GH_ParamAccess.item);
             pManager.AddGenericParameter("Nodal Forces2", "", "", GH_ParamAccess.item);
@@ -163,13 +163,13 @@ namespace FEM.Components
 
         }
 
-        void GetBeamForces(LA.Matrix<double> displacements, List<BeamElement> elements, out LA.Matrix<double> beamForces0)
+        void GetBeamForces(LA.Matrix<double> displacements, List<BeamElement> elements, out LA.Matrix<double> beamForces)
         {
 
             int dof = 6;
             int i = 3;
             int j = 0;
-            LA.Matrix<double> beamDisp = LA.Matrix<double>.Build.Dense(dof, elements.Count);
+            LA.Matrix<double> beamF = LA.Matrix<double>.Build.Dense(dof, elements.Count);
 
             foreach (BeamElement beam in elements)
             {
@@ -187,12 +187,13 @@ namespace FEM.Components
 
                 Matrices vecT = new Matrices();
                 LA.Matrix<double> beamdispT = vecT.TransformVector(beamDispEl, beam.StartNode.Point.X, beam.EndNode.Point.X, beam.StartNode.Point.Z, beam.EndNode.Point.Z, beam.Length);
-
-                beamDisp.SetSubMatrix(0, dof, j, 1, beam.kel.Multiply(beamdispT));
+                LA.Matrix<double> bf = beam.kel.Multiply(beamdispT);
+                beam.ForceList = vecT.GetForceList(bf);
+                beamF.SetSubMatrix(0, dof, j, 1, bf);
                 j++;
             }
 
-            beamForces0 = beamDisp;
+            beamForces = beamF;
 
         }
 
