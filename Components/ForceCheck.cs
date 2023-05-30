@@ -40,6 +40,7 @@ namespace FEM.Components
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
             pManager.AddNumberParameter("error, avarage", "momNode", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("errorList beam", "", "", GH_ParamAccess.list);
             pManager.AddNumberParameter("moments", "M", "", GH_ParamAccess.list);
 
         }
@@ -81,7 +82,8 @@ namespace FEM.Components
 
 
             DA.SetData(0, error);
-            DA.SetDataList(1, M);
+            DA.SetDataList(1, fBeam);
+            DA.SetDataList(2, M);
 
 
 
