@@ -39,7 +39,10 @@ namespace FEM.Components
         /// </summary>
         protected override void RegisterOutputParams(GH_Component.GH_OutputParamManager pManager)
         {
-            pManager.AddNumberParameter("error, avarage", "momNode", "", GH_ParamAccess.list);
+            pManager.AddNumberParameter("error, avarage", "momNode", "", GH_ParamAccess.item);
+            pManager.AddNumberParameter("errorList beam", "", "", GH_ParamAccess.list);
+            pManager.AddNumberParameter("moments", "M", "", GH_ParamAccess.list);
+
         }
 
         /// <summary>
@@ -62,43 +65,25 @@ namespace FEM.Components
             {
                 fBeam.Add(errorFunc(Math.Round(bfV[  2, i], 6), Math.Round(myK[i * 2] * 1000000, 6)));
                 fBeam.Add(errorFunc(Math.Round(bfV[  5, i], 6), Math.Round(myK[i * 2 +1] * 1000000, 6)));
-
-
             }
 
             Double error = fBeam.Sum() / fBeam.Count;
 
-            /*
-                    List<double> errorNode = new List<double>();
-            double errorAvg = 0;
 
             List<double> M = new List<double>();
 
-            M.Add(nodalForces[2, 0] * 0.000001);
-            for (int i = 1; i < nodalForces.ColumnCount; i++)
+            M.Add(bfV[2, 0] * 0.000001);
+            for (int i = 1; i < bfV.ColumnCount; i++)
             {
-                double m = (nodalForces[5, i - 1]) * 0.000001;
+                double m = (bfV[5, i - 1]) * 0.000001;
                 M.Add(m);
             }
-            M.Add(nodalForces[5, nodalForces.ColumnCount-1] * 0.000001);
-
-            
-            int j = 1;
-            errorNode.Add(100 - Math.Abs(M[0]/ karambaForces[0]) *100);          
-            for (int i = 1; i < M.Count-1; i++)
-            {
-                errorNode.Add(100 - Math.Abs(M[i] / karambaForces[j])*100);
-                j = j + 2;
-            }
-            errorNode.Add(100 - Math.Abs(M[M.Count-1] / karambaForces[karambaForces.Count-1])*100);
-            
-
-
-            errorAvg = errorNode.Average();
-            */
+            M.Add(bfV[5, bfV.ColumnCount-1] * 0.000001);
 
 
             DA.SetData(0, error);
+            DA.SetDataList(1, fBeam);
+            DA.SetDataList(2, M);
 
 
 
